@@ -2,7 +2,7 @@ const { assert } = require('chai');
 const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
-describe('Blocking a user', function testBlockingAUser() {
+describe('The block/unblock action', function testBlockingAUser() {
     // disable timeouts
     this.timeout(0);
 
@@ -17,11 +17,9 @@ describe('Blocking a user', function testBlockingAUser() {
         ]);
     });
 
-    it('the user should edit a page', async () => {
+    it('allows an admin to block a user', async () => {
         await eve.edit(pageTitle, { text: 'One', comment: 'first' });
-    });
 
-    it('an admin should block the user', async () => {
         const result = await mindy.action('block', {
             user: eve.username,
             reason: 'testing',
@@ -33,7 +31,7 @@ describe('Blocking a user', function testBlockingAUser() {
         assert.equal(result.block.user, eve.username);
     });
 
-    it('the user should fail to edit a page', async () => {
+    it('prevents a blocked user from editing', async () => {
         const error = await eve.actionError(
             'edit',
             {
@@ -47,7 +45,7 @@ describe('Blocking a user', function testBlockingAUser() {
         assert.equal(error.code, 'blocked');
     });
 
-    it('an admin should unblock the user', async () => {
+    it('allows an admin to unblock a user', async () => {
         const result = await mindy.action('unblock', {
             user: eve.username,
             reason: 'testing',
@@ -59,7 +57,7 @@ describe('Blocking a user', function testBlockingAUser() {
         assert.equal(result.unblock.user, eve.username);
     });
 
-    it('the user should by able to edit a page again', async () => {
+    it('allows a user to edit after being unblocked', async () => {
         await eve.edit(pageTitle, { text: 'Three', comment: 'third' });
     });
 });

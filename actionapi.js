@@ -1,5 +1,6 @@
 const { assert } = require('chai');
 const supertest = require('supertest');
+// const cookiejar = require('cookiejar'); // FIXME
 const uniqid = require('uniqid');
 const config = require('./config.json');
 
@@ -19,7 +20,7 @@ class Client {
     constructor() {
         this.req = supertest.agent(config.base_uri);
 
-        this.username = '';
+        this.username = '<anon>';
         this.userid = 0;
     }
 
@@ -72,7 +73,7 @@ class Client {
      * @returns Test
      */
     async request(actionName, params, post = false) {
-        // FIXME: it would be nice if we could resolve/await any promises in params
+        // TODO: it would be nice if we could resolve/await any promises in params
         const defaultParams = {
             action: actionName,
             format: 'json',
@@ -107,7 +108,7 @@ class Client {
         assert.exists(response.body);
 
         if (response.body.error) {
-            assert.fail(`Action "${actionName}" returned error code "${response.body.error.code}": ${response.body.error.info}!`);
+            assert.fail(`User "${this.username}": Action "${actionName}" returned error code "${response.body.error.code}": ${response.body.error.info}!`);
         }
 
         return response.body;
@@ -141,10 +142,14 @@ class Client {
     async loadTokens(ttypes) {
         const result = await this.action(
             'query',
-            { meta: 'tokens', types: ttypes.join('|') },
+            { meta: 'tokens', type: ttypes.join('|') },
         );
 
         this.tokens = result.query.tokens;
+
+        // const session = this.req.jar.getCookie('default_session', cookiejar.CookieAccessInfo.All);
+        // console.log(`loadTokens: user id ${this.userid}: ${JSON.stringify(this.tokens)} (session: ${session})`);
+
         return result.query.tokens;
     }
 
@@ -156,8 +161,9 @@ class Client {
      * @returns {Promise<string>}
      */
     async token(ttype = 'csrf') {
-        if (this.tokens && ttype in this.tokens) {
-            return this.tokens[ttype];
+        const tname = `${ttype}token`;
+        if (this.tokens && this.tokens[tname]) {
+            return this.tokens[tname];
         }
 
         // TODO: skip tokens we already have!
@@ -168,7 +174,9 @@ class Client {
 
         this.tokens = { ...this.tokens, ...newTokens };
 
-        const tname = `${ttype}token`;
+        // const session = this.req.jar.getCookie('default_session', cookiejar.CookieAccessInfo.All);
+        // console.log(`token(${ttype}): user id ${this.userid}: ${JSON.stringify(this.tokens)} (session: ${session})`);
+
         assert.exists(this.tokens[tname]);
         return this.tokens[tname];
     }
@@ -195,6 +203,7 @@ class Client {
 
         this.username = result.login.lgusername;
         this.userid = result.login.lguserid;
+        this.tokens = {}; // discard anon tokens
 
         return result.login;
     }
@@ -221,6 +230,30 @@ class Client {
         return result.edit;
     }
 
+    async getRevision(pageTitle, revid=0 ) {
+        const params = {
+            prop: 'revisions',
+            rvslots: 'main',
+            rvprop: 'ids|user|comment|content',
+        };
+
+        if (revid) {
+            params.revids = revid;
+        } else {
+            params.titles = pageTitle;
+            params.revlimit = 1;
+        }
+
+        const result = await this.action(
+            'query',
+            params
+        );
+
+        const pageid = Object.keys(result.query.pages)[0];
+        const page = result.query.pages[pageid];
+        return page.revisions[0];
+    }
+
     /**
      * @param {Object} params
      * @returns {Promise<Object>}
@@ -234,6 +267,8 @@ class Client {
 
         const result = await this.action('createaccount', { ...defaults, ...params }, 'POST');
         assert.equal(result.createaccount.status, 'PASS');
+
+        // TODO: wait for replication!
         return result.createaccount;
     }
 
@@ -251,7 +286,18 @@ class Client {
 
         const result = await this.action('userrights', gprops, 'POST');
         assert.isOk(result.userrights.added);
+
+        // TODO: wait for replication!
         return result.userrights;
+    }
+
+    /**
+     * Returns a promise that will resolve in no less than the given number of milliseconds.
+     * @param {int} ms wait time in milliseconds
+     * @returns {Promise<void>}
+     */
+    sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, 1000));
     }
 }
 
