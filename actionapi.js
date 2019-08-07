@@ -3,17 +3,31 @@ const supertest = require('supertest');
 const uniqid = require('uniqid');
 const config = require('./config.json');
 
-class ActionAPI {
+class Client {
+    /**
+     * Constructs a new agent for making HTTP requests to the MediaWiki
+     * action API. The agent acts like a browser session and has its own
+     * cookie jar.
+     *
+     * Until account() is used to attach the client to a user account,
+     * the client behaves like an "anonymous" user.
+     *
+     * Note that all anonymous users share the same IP address, even though they
+     * don't share a browser session (cookie jar). This means that are treated
+     * as the same user in some respects, but not in others.
+     */
     constructor() {
         this.req = supertest.agent(config.base_uri);
+
+        this.username = '';
+        this.userid = 0;
     }
 
     /**
-     * Constructs a new agent for making HTTP requests to the action API.
-     * The agent acts like a browser session and has its own cookie jar.
+     * Attaches this API client to a user account.
      *
-     * If a user name and a password is given, a login for this user is performed,
-     * and the corresponding server session is associated with this agent.
+     * A login for this user is performed,
+     * and the corresponding server session is associated with this client.
      * This should only be used when instantiating fixtures.
      *
      * If no password is given, a new user account is created with a random
@@ -21,32 +35,23 @@ class ActionAPI {
      * then logged in. This should be used to construct a temporary unique
      * user account that can be modified and destroyed by tests.
      *
-     * When used with no user name, the agent behaves like an "anonymous" user.
-     * Note that all anonymous users share the same IP address, even though they
-     * don't share a browser session (cookie jar). This means that are treated
-     * as the same user in some respects, but not in others.
-     *
-     * @param {string|null} name
+     * @param {string} name
      * @param {string|null} passwd
-     * @returns {Promise<ActionAPI>}
+     * @returns {Promise<Client>}
      */
-    async agent(name, passwd) {
-        if (name) {
-            let uname = name;
-            let upass = passwd;
+    async account(name, passwd = null) {
+        let uname = name;
+        let upass = passwd;
 
-            if (!upass) {
-                uname = name + uniqid();
-                upass = uniqid();
+        if (!upass) {
+            uname = name + uniqid();
+            upass = uniqid();
 
-                const account = await this.createAccount({ username: uname, password: upass });
-                uname = account.username;
-            }
-
-            const login = await this.login(uname, upass);
-            this.username = login.lgusername;
-            this.userid = login.lguserid;
+            const account = await this.createAccount({ username: uname, password: upass });
+            uname = account.username;
         }
+
+        await this.login(uname, upass);
         return this;
     }
 
@@ -187,6 +192,10 @@ class ActionAPI {
         );
         assert.equal(result.login.result, 'Success',
             `Login for "${username}": ${result.login.reason}`);
+
+        this.username = result.login.lgusername;
+        this.userid = result.login.lguserid;
+
         return result.login;
     }
 
@@ -247,7 +256,12 @@ class ActionAPI {
 }
 
 module.exports = {
-    ActionAPI,
+    /**
+     * API Client class.
+     * Wraps a supertest Test, which emulates a superagent request.
+     */
+    Client,
+
     /**
      * Returns a unique title for use in tests.
      *

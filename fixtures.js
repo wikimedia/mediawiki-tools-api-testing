@@ -12,31 +12,53 @@ module.exports = {
             return this.singletons.root;
         }
 
-        const ActionAPI = new api.ActionAPI();
-        this.singletons.root = await ActionAPI.agent(config.root_user.name,
+        this.singletons.root = new api.Client();
+        await this.singletons.root.login(config.root_user.name,
             config.root_user.password);
         await this.singletons.root.loadTokens(['createaccount', 'userrights', 'csrf']);
 
         return this.singletons.root;
     },
 
-    async mindy() {
-        if (this.singletons.mindy) {
-            return this.singletons.mindy;
+    async user(name, groups = [], tokens = ['csrf']) {
+        if (this.singletons[name]) {
+            return this.singletons[name];
         }
 
-        // TODO: Use a fixed user name for Mindy. Works only on a blank wiki.
-        const uname = `Mindy_${uniqid()}`;
+        // TODO: Use a fixed user name for Alice. Works only on a blank wiki.
+        const uname = `${name}_${uniqid()}`;
         const passwd = uniqid();
         const root = await this.root();
-        const ActionAPI = new api.ActionAPI();
+        const client = new api.Client();
 
         await root.createAccount({ username: uname, password: passwd });
-        await root.addGroups(uname, ['sysop']);
+        if (groups.length) {
+            await root.addGroups(uname, groups);
+        }
 
-        this.singletons.mindy = await ActionAPI.agent(uname, passwd);
-        await this.singletons.mindy.loadTokens(['userrights', 'csrf']);
+        await client.account(uname, passwd);
 
-        return this.singletons.mindy;
+        if (tokens.length) {
+            await client.loadTokens(tokens);
+        }
+
+        this.singletons[name] = client;
+        return client;
+    },
+
+    async alice() {
+        return this.user('Alice');
+    },
+
+    async bob() {
+        return this.user('Bob');
+    },
+
+    async mindy() {
+        return this.user('Mindy', ['sysop'], ['userrights', 'csrf']);
+    },
+
+    async robby() {
+        return this.user('Robby', ['bot']);
     }
 };

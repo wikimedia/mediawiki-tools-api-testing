@@ -1,10 +1,6 @@
 {
   "base_uri": "http://default.web.mw.localhost:8080/mediawiki/api.php",
   "main_page": "Main_Page",
-  "wikiuser": {
-    "name": "Wikiuser",
-    "password": "wikiuser123"
-  },
   "root_user": {
     "name": "Admin",
     "password": "dockerpass"

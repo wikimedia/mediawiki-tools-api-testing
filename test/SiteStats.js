@@ -1,5 +1,5 @@
 const { assert } = require('chai');
-const config = require('../config.json');
+const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
 describe("Testing site statistics' edits value", function () {
@@ -13,11 +13,10 @@ describe("Testing site statistics' edits value", function () {
     };
 
     const variables = {};
-    const wikiuser = new api.ActionAPI();
+    let wikiuser;
 
     before(async () => {
-        // Login user
-        await wikiuser.agent(config.wikiuser.name, config.wikiuser.password);
+        wikiuser = await fixtures.alice();
     });
 
     it('should GET site statistics', async () => {

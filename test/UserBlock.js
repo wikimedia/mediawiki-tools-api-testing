@@ -6,13 +6,13 @@ describe('Blocking a user', function testBlockingAUser() {
     // disable timeouts
     this.timeout(0);
 
-    let eve = new api.ActionAPI();
+    let eve = new api.Client();
     let pageTitle, mindy;
 
     before(async () => {
         [pageTitle, eve, mindy] = await Promise.all([
             api.title('Block_'),
-            eve.agent('Eve_'),
+            eve.account('Eve_'),
             fixtures.mindy()
         ]);
     });

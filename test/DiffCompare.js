@@ -1,18 +1,17 @@
 const { assert } = require('chai');
-const config = require('../config.json');
+const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
 describe('Diff Compare with Variables', function () {
     // disable timeouts
     this.timeout(0);
 
-    const wikiuser = new api.ActionAPI();
+    let wikiuser;
     const title = api.title('DiffCompare');
     const variables = {};
 
     before(async () => {
-        // Login user
-        await wikiuser.agent(config.wikiuser.name, config.wikiuser.password);
+        wikiuser = await fixtures.alice();
     });
 
     it('should edit a page', async () => {

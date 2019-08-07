@@ -1,22 +1,21 @@
 const { assert } = require('chai');
-const config = require('../config.json');
 const api = require('../actionapi');
+const fixtures = require('../fixtures');
 
 describe('Test page protection levels and effectiveness', function () {
     // disable timeouts
     this.timeout(0);
 
     // users
-    const admin = new api.ActionAPI();
-    const anonymousUser = new api.ActionAPI();
-    const wikiUser = new api.ActionAPI();
+    let admin, wikiUser;
+    const anonymousUser = new api.Client();
 
     const protectedPage = api.title('Protected_');
     const semiProtectedPage = api.title('SemiProtected_');
 
     before(async () => {
-        // Login admin
-        await admin.agent(config.root_user.name, config.root_user.password);
+        admin = await fixtures.root();
+        wikiUser = await fixtures.alice();
 
         // Get edit token for admin
         const adminEditToken = await admin.token();
@@ -34,9 +33,6 @@ describe('Test page protection levels and effectiveness', function () {
         // Add edit protections to only allow auto confirmed users to edit Semi Protected page
         const addAutoConfirmedProtection = await admin.action('protect', { title: semiProtectedPage, token: adminEditToken, protections: 'edit=autoconfirmed' }, 'POST');
         assert.equal(addAutoConfirmedProtection.protect.protections[0].edit, 'autoconfirmed');
-
-        // Login wikiUser
-        await wikiUser.agent(config.wikiuser.name, config.wikiuser.password);
     });
 
     it('should allow admin to edit Protected page', async () => {
