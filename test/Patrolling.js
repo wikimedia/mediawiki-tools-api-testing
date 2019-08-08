@@ -17,7 +17,7 @@ describe('The patrol action', function testEditPatrolling() {
     });
 
     it('doesn\'t allow a users to patrol their own edit', async () => {
-        edit = await alice.edit(pageTitle, { text: 'One', comment: 'first' });
+        edit = await alice.edit(pageTitle, { text: 'One', summary: 'first' });
 
         const error = await alice.actionError(
             'patrol',

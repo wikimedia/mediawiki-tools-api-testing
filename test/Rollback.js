@@ -20,11 +20,11 @@ describe('The rollback action', function testEditRollback() {
         const title = api.title('Rollback_');
         const edits = {};
 
-        edits.alice1 = await alice.edit(title, { text: 'One', comment: 'first' });
-        edits.bob2 = await bob.edit(title, { text: 'Two', comment: 'second' });
-        edits.alice3 = await alice.edit(title, { text: 'Three', comment: 'third' });
-        edits.bob4 = await bob.edit(title, { text: 'Four', comment: 'fourth' });
-        edits.bob5 = await bob.edit(title, { text: 'Five', comment: 'fifth' });
+        edits.alice1 = await alice.edit(title, { text: 'One', summary: 'first' });
+        edits.bob2 = await bob.edit(title, { text: 'Two', summary: 'second' });
+        edits.alice3 = await alice.edit(title, { text: 'Three', summary: 'third' });
+        edits.bob4 = await bob.edit(title, { text: 'Four', summary: 'fourth' });
+        edits.bob5 = await bob.edit(title, { text: 'Five', summary: 'fifth' });
 
         const result = await mindy.action('rollback', {
             title,
@@ -46,9 +46,9 @@ describe('The rollback action', function testEditRollback() {
     it('doesn\'t roll back edits by another user', async () => {
         const title = api.title('Rollback_');
 
-        await alice.edit(title, { text: 'One', comment: 'first' });
-        await bob.edit(title, { text: 'Two', comment: 'second' });
-        await alice.edit(title, { text: 'Three', comment: 'third' });
+        await alice.edit(title, { text: 'One', summary: 'first' });
+        await bob.edit(title, { text: 'Two', summary: 'second' });
+        await alice.edit(title, { text: 'Three', summary: 'third' });
 
         const error = await mindy.actionError('rollback', {
             title,
@@ -63,8 +63,8 @@ describe('The rollback action', function testEditRollback() {
     it('doesn\'t allow a regular user to roll back edits', async () => {
         const title = api.title('Rollback_');
 
-        await alice.edit(title, { text: 'One', comment: 'first' });
-        await bob.edit(title, { text: 'Two', comment: 'second' });
+        await alice.edit(title, { text: 'One', summary: 'first' });
+        await bob.edit(title, { text: 'Two', summary: 'second' });
 
         const error = await alice.actionError('rollback', {
             title,

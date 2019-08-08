@@ -285,17 +285,24 @@ class Client {
      * @return {Promise<Object>}
      */
     async edit(pageTitle, params) {
-        const editParams = {
-            title: pageTitle,
-            text: 'Lorem Ipsum',
-            comment: 'testing'
+        const effectiveParams = {
+            ...{
+                title: pageTitle,
+                text: 'Lorem Ipsum',
+                summary: 'testing',
+            },
+            ...params
         };
 
-        editParams.token = params.token || await this.token('csrf');
+        effectiveParams.token = params.token || await this.token('csrf');
 
-        const result = await this.action('edit', { ...editParams, ...params }, 'POST');
+        const result = await this.action('edit', effectiveParams, 'POST');
         assert.equal(result.edit.result, 'Success');
 
+        // record parameters, for convenience
+        result.edit.param_text = effectiveParams.text;
+        result.edit.param_summary = effectiveParams.summary;
+        result.edit.param_user = this.username;
         return result.edit;
     }
 

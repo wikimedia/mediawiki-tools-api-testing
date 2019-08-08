@@ -18,7 +18,7 @@ describe('The block/unblock action', function testBlockingAUser() {
     });
 
     it('allows an admin to block a user', async () => {
-        await eve.edit(pageTitle, { text: 'One', comment: 'first' });
+        await eve.edit(pageTitle, { text: 'One', summary: 'first' });
 
         const result = await mindy.action('block', {
             user: eve.username,
@@ -37,7 +37,7 @@ describe('The block/unblock action', function testBlockingAUser() {
             {
                 title: pageTitle,
                 text: 'Two',
-                comment: 'second',
+                summary: 'second',
                 token: await eve.token('csrf')
             },
             'POST',
@@ -58,6 +58,6 @@ describe('The block/unblock action', function testBlockingAUser() {
     });
 
     it('allows a user to edit after being unblocked', async () => {
-        await eve.edit(pageTitle, { text: 'Three', comment: 'third' });
+        await eve.edit(pageTitle, { text: 'Three', summary: 'third' });
     });
 });

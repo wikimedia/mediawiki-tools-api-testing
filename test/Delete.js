@@ -19,7 +19,7 @@ describe('The delete/undelete action', function testDeleteAction() {
     it('allows an admin to delete a page', async () => {
         await alice.edit(title, {
             text: 'Testing the testy test',
-            comment: 'first',
+            summary: 'first',
             createonly: true
         });
 
