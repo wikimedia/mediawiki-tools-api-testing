@@ -74,6 +74,7 @@ class Client {
      */
     async request(actionName, params, post = false) {
         // TODO: it would be nice if we could resolve/await any promises in params
+        // TODO: convert any arrays in params to strings
         const defaultParams = {
             action: actionName,
             format: 'json',
@@ -115,6 +116,71 @@ class Client {
     }
 
     /**
+     * Executes a prop query
+     *
+     * @param {string|Array} prop
+     * @param {string|Array} titles
+     * @param {Object} params
+     * @returns {Promise<Array>}
+     */
+    async prop(prop, titles, params={}) {
+        const defaults = {
+            'prop': typeof prop == 'string' ? prop : prop.join('|'),
+            'titles': typeof titles == 'string' ? titles : titles.join('|'),
+        };
+        const result = await this.action('query', { ...defaults, ...params });
+
+        const names = {};
+        const pages = {};
+
+        if ( result.query.normalized ) {
+            for( let e of result.query.normalized ) {
+                names[e.to] = e.from;
+            }
+        }
+
+        for( let k in result.query.pages ) {
+            let title = result.query.pages[k].title;
+
+            // De-normalize the titles, so the keys in the result correspond
+            // to the titles parameter.
+            if ( title in names ) {
+                title = names[title];
+            }
+
+            pages[title] = result.query.pages[k];
+        }
+
+        return pages;
+    }
+
+    /**
+     * Executes a list query
+     *
+     * @param list
+     * @param {Object} params
+     * @returns {Promise<Array>}
+     */
+    async list(list, params) {
+        const defaults = { list };
+        const result = await this.action('query', { ...defaults, ...params });
+        return result.query[list];
+    }
+
+    /**
+     * Executes a meta query
+     *
+     * @param meta
+     * @param {Object} params
+     * @returns {Promise<Object>}
+     */
+    async meta(meta, params) {
+        const defaults = { meta };
+        const result = await this.action('query', { ...defaults, ...params });
+        return result.query[meta];
+    }
+
+    /**
      * Executes an HTTP request to the action API and returns the error
      * stanza of the response body. Will fail if there is no error stanza.
      * This is intended as an easy way to test for expected errors.
@@ -140,17 +206,9 @@ class Client {
      * @returns {Promise<Object>}
      */
     async loadTokens(ttypes) {
-        const result = await this.action(
-            'query',
-            { meta: 'tokens', type: ttypes.join('|') },
-        );
+        this.tokens = await this.meta('tokens', { type: ttypes.join('|') });
 
-        this.tokens = result.query.tokens;
-
-        // const session = this.req.jar.getCookie('default_session', cookiejar.CookieAccessInfo.All);
-        // console.log(`loadTokens: user id ${this.userid}: ${JSON.stringify(this.tokens)} (session: ${session})`);
-
-        return result.query.tokens;
+       return this.tokens;
     }
 
     /**
@@ -167,10 +225,7 @@ class Client {
         }
 
         // TODO: skip tokens we already have!
-        const newTokens = (await this.action(
-            'query',
-            { meta: 'tokens', type: ttype },
-        )).query.tokens;
+        const newTokens = await this.meta('tokens', { type: ttype });
 
         this.tokens = { ...this.tokens, ...newTokens };
 
@@ -230,9 +285,8 @@ class Client {
         return result.edit;
     }
 
-    async getRevision(pageTitle, revid=0 ) {
+    async getRevision(pageTitle, revid=0) {
         const params = {
-            prop: 'revisions',
             rvslots: 'main',
             rvprop: 'ids|user|comment|content',
         };
@@ -241,17 +295,24 @@ class Client {
             params.revids = revid;
         } else {
             params.titles = pageTitle;
-            params.revlimit = 1;
+            params.rvlimit = 1;
         }
 
-        const result = await this.action(
-            'query',
+        const result = await this.prop(
+            'revisions',
+            pageTitle,
             params
         );
 
-        const pageid = Object.keys(result.query.pages)[0];
-        const page = result.query.pages[pageid];
+        // XXX: pageTitle may need normalization!
+        const page = result[pageTitle];
         return page.revisions[0];
+    }
+
+    async getHtml(title) {
+        const result = await this.action('parse', { page: title });
+
+        return result.parse.text['*'];
     }
 
     /**

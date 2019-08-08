@@ -31,16 +31,15 @@ describe('The patrol action', function testEditPatrolling() {
         );
         assert.equal(error.code, 'permissiondenied');
 
-        const result = await mindy.action(
-            'query',
+        const recentchanges = await mindy.list(
+            'recentchanges',
             {
-                list: 'recentchanges',
                 rctitle: pageTitle,
                 rcprop: 'ids|flags|patrolled'
             },
         );
 
-        rc = result.query.recentchanges[0];
+        rc = recentchanges[0];
 
         assert.equal(rc.type, 'new');
         assert.notExists(rc.autopatrolled);
@@ -60,14 +59,13 @@ describe('The patrol action', function testEditPatrolling() {
         );
         assert.equal(result.patrol.rcid, rc.rcid);
 
-        rc = (await mindy.action(
-            'query',
+        rc = (await mindy.list(
+            'recentchanges',
             {
-                list: 'recentchanges',
                 rctitle: pageTitle,
                 rcprop: 'ids|flags|patrolled'
             },
-        )).query.recentchanges[0];
+        ))[0];
 
         assert.equal(rc.type, 'new');
         assert.exists(rc.patrolled);
