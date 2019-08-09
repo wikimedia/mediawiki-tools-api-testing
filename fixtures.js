@@ -21,7 +21,7 @@ module.exports = {
         // FIXME: Something is wrong with the async stuff here, and Daniel can't figure out what.
         //   Without the sleep, the userrights token is sometimes the anon token, '+\\',
         //   which leads to silent failure of addGroups. None of this makes any sense.
-        root.sleep(1000);
+        api.sleep(1000);
         const rightsToken = await root.token('userrights');
         assert.notEqual(rightsToken, '+\\');
 
@@ -36,7 +36,7 @@ module.exports = {
 
         // TODO: Use a fixed user name for Alice. Works only on a blank wiki.
         let uname = api.title(name);
-        const passwd = api.title();
+        const passwd = api.uniq();
         const root = await this.root();
         const client = new api.Client();
 
