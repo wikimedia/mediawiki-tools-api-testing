@@ -1,5 +1,4 @@
 const { assert } = require('chai');
-const uniqid = require('uniqid');
 const api = require('./actionapi');
 const config = require('./config.json');
 
@@ -36,8 +35,8 @@ module.exports = {
         }
 
         // TODO: Use a fixed user name for Alice. Works only on a blank wiki.
-        let uname = `${name}_${uniqid()}`;
-        const passwd = uniqid();
+        let uname = api.title(name);
+        const passwd = api.title();
         const root = await this.root();
         const client = new api.Client();
 

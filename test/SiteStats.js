@@ -8,8 +8,7 @@ describe("Testing site statistics' edits value", function () {
 
     const siteStatsParams = {
         meta: 'siteinfo',
-        siprop: 'statistics',
-        format: 'json'
+        siprop: 'statistics'
     };
 
     const variables = {};
@@ -26,7 +25,8 @@ describe("Testing site statistics' edits value", function () {
     });
 
     it('should edit a page', async () => {
-        await wikiuser.edit(api.title('TestingSiteStats_'), { text: 'testing site stats ...' });
+        const title = api.title('TestingSiteStats_');
+        await wikiuser.edit(title, { text: 'testing site stats ...' });
     });
 
     it('should GET an increased site edits stat', async () => {

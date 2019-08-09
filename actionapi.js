@@ -1,8 +1,23 @@
 const { assert } = require('chai');
 const supertest = require('supertest');
 // const cookiejar = require('cookiejar'); // FIXME
-const uniqid = require('uniqid');
 const config = require('./config.json');
+
+/**
+ * Returns a unique title for use in tests.
+ *
+ * @param {string} namePrefix
+ * @return {Promise<string>}
+ */
+const title = (namePrefix = '') => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = namePrefix;
+
+    for (let i = 0; i < 10; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+};
 
 class Client {
     /**
@@ -38,15 +53,15 @@ class Client {
      *
      * @param {string} name
      * @param {string|null} passwd
-     * @returns {Promise<Client>}
+     * @return {Promise<Client>}
      */
     async account(name, passwd = null) {
         let uname = name;
         let upass = passwd;
 
         if (!upass) {
-            uname = name + uniqid();
-            upass = uniqid();
+            uname = title(name);
+            upass = title();
 
             const account = await this.createAccount({ username: uname, password: upass });
             uname = account.username;
@@ -66,18 +81,17 @@ class Client {
      * and can still be modified like a superagent request.
      * Call end() or then(), use use await to send the request.
      *
-     * @param actionName
+     * @param {string} actionName
      * @param {Object} params
-     * @param post
-     *
-     * @returns Test
+     * @param {boolean|string} post
+     * @return {Promise<*>}
      */
     async request(actionName, params, post = false) {
         // TODO: it would be nice if we could resolve/await any promises in params
         // TODO: convert any arrays in params to strings
         const defaultParams = {
             action: actionName,
-            format: 'json',
+            format: 'json'
         };
 
         let req;
@@ -97,10 +111,10 @@ class Client {
      * Executes an HTTP request to the action API and returns the parsed
      * response body. Will fail if the reponse contains an error code.
      *
-     * @param actionName
+     * @param {string} actionName
      * @param {Object} params
-     * @param post
-     * @returns {Promise<Object>}
+     * @param {boolean|string} post
+     * @return {Promise<Object>}
      */
     async action(actionName, params, post = false) {
         const response = await this.request(actionName, params, post);
@@ -121,30 +135,30 @@ class Client {
      * @param {string|Array} prop
      * @param {string|Array} titles
      * @param {Object} params
-     * @returns {Promise<Array>}
+     * @return {Promise<Array>}
      */
-    async prop(prop, titles, params={}) {
+    async prop(prop, titles, params = {}) {
         const defaults = {
-            'prop': typeof prop == 'string' ? prop : prop.join('|'),
-            'titles': typeof titles == 'string' ? titles : titles.join('|'),
+            prop: typeof prop === 'string' ? prop : prop.join('|'),
+            titles: typeof titles === 'string' ? titles : titles.join('|')
         };
         const result = await this.action('query', { ...defaults, ...params });
 
         const names = {};
         const pages = {};
 
-        if ( result.query.normalized ) {
-            for( let e of result.query.normalized ) {
+        if (result.query.normalized) {
+            for (const e of result.query.normalized) {
                 names[e.to] = e.from;
             }
         }
 
-        for( let k in result.query.pages ) {
+        for (const k in result.query.pages) {
             let title = result.query.pages[k].title;
 
             // De-normalize the titles, so the keys in the result correspond
             // to the titles parameter.
-            if ( title in names ) {
+            if (title in names) {
                 title = names[title];
             }
 
@@ -157,9 +171,9 @@ class Client {
     /**
      * Executes a list query
      *
-     * @param list
+     * @param {string} list
      * @param {Object} params
-     * @returns {Promise<Array>}
+     * @return {Promise<Array>}
      */
     async list(list, params) {
         const defaults = { list };
@@ -170,9 +184,9 @@ class Client {
     /**
      * Executes a meta query
      *
-     * @param meta
+     * @param {string} meta
      * @param {Object} params
-     * @returns {Promise<Object>}
+     * @return {Promise<Object>}
      */
     async meta(meta, params) {
         const defaults = { meta };
@@ -185,10 +199,10 @@ class Client {
      * stanza of the response body. Will fail if there is no error stanza.
      * This is intended as an easy way to test for expected errors.
      *
-     * @param actionName
+     * @param {string} actionName
      * @param {Object} params
-     * @param post
-     * @returns {Promise<Object>}
+     * @param {boolean|string} post
+     * @return {Promise<Object>}
      */
     async actionError(actionName, params, post = false) {
         const response = await this.request(actionName, params, post);
@@ -203,12 +217,12 @@ class Client {
      * Loads the given tokens. Any cached tokens are reset.
      *
      * @param {string[]} ttypes
-     * @returns {Promise<Object>}
+     * @return {Promise<Object>}
      */
     async loadTokens(ttypes) {
         this.tokens = await this.meta('tokens', { type: ttypes.join('|') });
 
-       return this.tokens;
+        return this.tokens;
     }
 
     /**
@@ -216,7 +230,7 @@ class Client {
      * and then cached.
      *
      * @param {string} ttype
-     * @returns {Promise<string>}
+     * @return {Promise<string>}
      */
     async token(ttype = 'csrf') {
         const tname = `${ttype}token`;
@@ -241,7 +255,7 @@ class Client {
      *
      * @param {string} username
      * @param {string} password
-     * @returns {Promise<Object>}
+     * @return {Promise<Object>}
      */
     async login(username, password) {
         const result = await this.action(
@@ -249,7 +263,7 @@ class Client {
             {
                 lgname: username,
                 lgpassword: password,
-                lgtoken: await this.token('login'),
+                lgtoken: await this.token('login')
             },
             'POST',
         );
@@ -268,13 +282,13 @@ class Client {
      *
      * @param {string} pageTitle
      * @param {Object} params
-     * @returns {Promise<Object>}
+     * @return {Promise<Object>}
      */
     async edit(pageTitle, params) {
         const editParams = {
             title: pageTitle,
             text: 'Lorem Ipsum',
-            comment: 'testing',
+            comment: 'testing'
         };
 
         editParams.token = params.token || await this.token('csrf');
@@ -285,10 +299,10 @@ class Client {
         return result.edit;
     }
 
-    async getRevision(pageTitle, revid=0) {
+    async getRevision(pageTitle, revid = 0) {
         const params = {
             rvslots: 'main',
-            rvprop: 'ids|user|comment|content',
+            rvprop: 'ids|user|comment|content'
         };
 
         if (revid) {
@@ -317,13 +331,13 @@ class Client {
 
     /**
      * @param {Object} params
-     * @returns {Promise<Object>}
+     * @return {Promise<Object>}
      */
     async createAccount(params) {
         const defaults = {
             createtoken: params.token || await this.token('createaccount'),
             retype: params.retype || params.password,
-            createreturnurl: config.base_uri,
+            createreturnurl: config.base_uri
         };
 
         const result = await this.action('createaccount', { ...defaults, ...params }, 'POST');
@@ -336,13 +350,13 @@ class Client {
     /**
      * @param {string} userName
      * @param {string[]} groups
-     * @returns {Promise<Object>}
+     * @return {Promise<Object>}
      */
     async addGroups(userName, groups) {
         const gprops = {
             user: userName,
             add: groups.join('|'),
-            token: await this.token('userrights'),
+            token: await this.token('userrights')
         };
 
         const result = await this.action('userrights', gprops, 'POST');
@@ -355,13 +369,12 @@ class Client {
     /**
      * Returns a promise that will resolve in no less than the given number of milliseconds.
      * @param {int} ms wait time in milliseconds
-     * @returns {Promise<void>}
+     * @return {Promise<void>}
      */
     sleep(ms) {
         return new Promise((resolve) => setTimeout(resolve, 1000));
     }
 }
-
 module.exports = {
     /**
      * API Client class.
@@ -371,9 +384,6 @@ module.exports = {
 
     /**
      * Returns a unique title for use in tests.
-     *
-     * @param {string|null} namePrefix
-     * @returns string
      */
-    title: namePrefix => uniqid(namePrefix),
+    title
 };

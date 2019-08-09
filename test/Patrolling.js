@@ -6,9 +6,8 @@ describe('The patrol action', function testEditPatrolling() {
     // disable timeouts
     this.timeout(0);
 
-    let alice, mindy;
+    let alice, mindy, edit, rc;
     const pageTitle = api.title('Patroll_');
-    let edit, rc;
 
     before(async () => {
         [alice, mindy] = await Promise.all([
