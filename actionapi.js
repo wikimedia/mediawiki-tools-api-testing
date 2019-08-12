@@ -1,23 +1,54 @@
 const { assert } = require('chai');
 const supertest = require('supertest');
-// const cookiejar = require('cookiejar'); // FIXME
 const config = require('./config.json');
 
 /**
- * Returns a unique title for use in tests.
+ * Returns a unique string of random alphanumeric characters.
  *
- * @param {string} namePrefix
- * @return {Promise<string>}
+ * @param {int} n the desired number of characters
+ * @return {string}
  */
-const title = (namePrefix = '') => {
+const uniq = (n=10) => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = namePrefix;
+    let result = '';
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < n; i++) {
         result += characters.charAt(Math.floor(Math.random() * characters.length));
     }
     return result;
 };
+
+/**
+ * Returns a unique title for use in tests.
+ *
+ * @param {string} prefix
+ * @return {string}
+ */
+const title = (prefix = '') => {
+    return prefix + uniq();
+};
+
+/**
+ * Returns a promise that will resolve in no less than the given number of milliseconds.
+ * @param {int} ms wait time in milliseconds
+ * @returns {Promise<void>}
+ */
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, 1000));
+
+/**
+ * Converts a title string to DB key form by replacing any spaces with underscores.
+ * @param {string} title
+ * @returns {string}
+ */
+const dbkey = (title) => title.replace( / /g, '_');
+
+/**
+ * Compares two titles, applying some normalization
+ * @param a
+ * @param b
+ */
+const sameTitle = (a, b) => assert.equal(dbkey(a), dbkey(b));
+
 
 class Client {
     /**
@@ -288,11 +319,13 @@ class Client {
         const effectiveParams = {
             ...{
                 title: pageTitle,
-                text: 'Lorem Ipsum',
                 summary: 'testing',
             },
             ...params
         };
+
+        // use a unique default text
+        effectiveParams.text = effectiveParams.text || 'Lorem ipsum ' + uniq();
 
         effectiveParams.token = params.token || await this.token('csrf');
 
@@ -306,10 +339,18 @@ class Client {
         return result.edit;
     }
 
+    /**
+     * Returns a revision record of the given page.
+     * If revid is not given or 0, the latest revision is returned.
+     *
+     * @param pageTitle
+     * @param revid
+     * @returns {Promise<Object>}
+     */
     async getRevision(pageTitle, revid = 0) {
         const params = {
             rvslots: 'main',
-            rvprop: 'ids|user|comment|content'
+            rvprop: 'ids|user|comment|content|timestamp|flags|contentmodel',
         };
 
         if (revid) {
@@ -328,6 +369,42 @@ class Client {
         // XXX: pageTitle may need normalization!
         const page = result[pageTitle];
         return page.revisions[0];
+    }
+
+    /**
+     * Returns the newest log entry matching the given parameters.
+     *
+     * @param params
+     * @returns {Promise<Object>}
+     */
+    async getLogEntry(params) {
+        const list = await this.list('logevents', {
+            ...{
+                leprop: 'ids|title|type|user|timestamp|comment',
+                lelimit: 1
+            },
+            ...params
+        });
+
+        return list[0];
+    }
+
+    /**
+     * Returns the newest recent changes entry matching the given parameters.
+     *
+     * @param params
+     * @returns {Promise<Object>}
+     */
+    async getChangeEntry(params) {
+        const list = await this.list('recentchanges', {
+            ...{
+                rcprop: 'ids|flags|user|comment|timestamp|title',
+                rclimit: 1
+            },
+            ...params
+        });
+
+        return list[0];
     }
 
     async getHtml(title) {
@@ -373,14 +450,6 @@ class Client {
         return result.userrights;
     }
 
-    /**
-     * Returns a promise that will resolve in no less than the given number of milliseconds.
-     * @param {int} ms wait time in milliseconds
-     * @return {Promise<void>}
-     */
-    sleep(ms) {
-        return new Promise((resolve) => setTimeout(resolve, 1000));
-    }
 }
 module.exports = {
     /**
@@ -390,7 +459,42 @@ module.exports = {
     Client,
 
     /**
-     * Returns a unique title for use in tests.
+     * Returns a unique string of random alphanumeric characters.
      */
-    title
+    uniq,
+
+    /**
+     * Returns a unique title for use in tests.
+     *
+     * @param {string|null} namePrefix
+     * @returns string
+     */
+    title,
+
+    /**
+     * Returns a promise that will resolve in no less than the given number of milliseconds.
+     * @param {int} ms wait time in milliseconds
+     * @returns {Promise<void>}
+     */
+    sleep,
+
+    /**
+     * Converts a title string to DB key form by replacing any spaces with underscores.
+     * @param {string} title
+     * @returns {string}
+     */
+    dbkey,
+
+    /**
+     * Convenient assertions
+     */
+    'assert': {
+        /**
+         * Compares two titles, applying some normalization
+         * @param a
+         * @param b
+         */
+        sameTitle,
+    },
+
 };

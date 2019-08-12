@@ -33,7 +33,7 @@ describe('The rollback action', function testEditRollback() {
             token: await mindy.token('rollback')
         }, 'POST');
 
-        assert.equal(result.rollback.title, title.replace('_', ' '));
+        api.assert.sameTitle(result.rollback.title, title);
         assert.equal(result.rollback.old_revid, edits.bob5.newrevid);
         assert.equal(result.rollback.last_revid, edits.alice3.newrevid);
 

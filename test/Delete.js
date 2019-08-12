@@ -29,21 +29,19 @@ describe('The delete/undelete action', function testDeleteAction() {
             token: await mindy.token('csrf')
         }, 'POST');
 
-        assert.equal(result.delete.title, title.replace('_', ' '));
+        api.assert.sameTitle(result.delete.title, title);
 
         const error = await mindy.actionError('parse', { page: title });
         assert.equal(error.code, 'missingtitle');
     });
 
     it('logs the deletion', async () => {
-        const list = await alice.list('logevents', {
-            leprop: 'ids|title|type|user',
+        const log = await alice.getLogEntry({
             letype: 'delete',
-            letitle: title,
-            lelimit: 1
+            letitle: title
         });
-        assert.equal(list[0].user, mindy.username);
-        assert.equal(list[0].action, 'delete');
+        assert.equal(log.user, mindy.username);
+        assert.equal(log.action, 'delete');
     });
 
     it('allows an admin to undelete a page', async () => {
@@ -53,20 +51,18 @@ describe('The delete/undelete action', function testDeleteAction() {
             token: await mindy.token('csrf')
         }, 'POST');
 
-        assert.equal(result.undelete.title, title.replace('_', ' '));
+        api.assert.sameTitle(result.undelete.title, title);
 
         const html = await alice.getHtml(title);
         assert.match(html, /Testing the testy test/);
     });
 
     it('logs the undeletion', async () => {
-        const list = await alice.list('logevents', {
-            leprop: 'ids|title|type|user',
+        const log = await alice.getLogEntry({
             letype: 'delete',
-            letitle: title,
-            lelimit: 1
+            letitle: title
         });
-        assert.equal(list[0].user, mindy.username);
-        assert.equal(list[0].action, 'restore');
+        assert.equal(log.user, mindy.username);
+        assert.equal(log.action, 'restore');
     });
 });
