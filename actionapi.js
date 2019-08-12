@@ -127,11 +127,11 @@ class Client {
 
         let req;
         if (post) {
-            req = this.req.post('')
+            req = this.req.post('api.php')
                 .type('form')
                 .send({ ...defaultParams, ...params });
         } else {
-            req = this.req.get('')
+            req = this.req.get('api.php')
                 .query({ ...defaultParams, ...params });
         }
 

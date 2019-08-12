@@ -35,7 +35,7 @@ the target wiki. This configuration is contained in the `config.json` file:
 
 ```json
 {
-  "base_uri": "http://default.web.mw.localhost:8080/mediawiki/api.php",
+  "base_uri": "http://default.web.mw.localhost:8080/mediawiki/",
   "main_page": "Main_Page",
   "root_user": {
     "name": "Admin",
@@ -49,6 +49,7 @@ MediaWiki-Docker-Dev (see above).
 If you have a custom setup, you need to provide the following configuration settings:
 
 * `base_uri`: Full base URI of the MediaWiki installation to target.
+Must end with a slash (`/`).
 * `main_page`: The name of the wiki's main page.
 * `root_user`: Login credentials for a user that has bureaucrat privileges
 (most importantly, the right to add users to groups to grant them privileged access).

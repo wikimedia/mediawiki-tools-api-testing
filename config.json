@@ -1,5 +1,5 @@
 {
-  "base_uri": "http://default.web.mw.localhost:8080/mediawiki/api.php",
+  "base_uri": "http://default.web.mw.localhost:8080/mediawiki/",
   "main_page": "Main_Page",
   "root_user": {
     "name": "Admin",
