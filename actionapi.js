@@ -33,7 +33,7 @@ const title = (prefix = '') => {
  * @param {int} ms wait time in milliseconds
  * @returns {Promise<void>}
  */
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, 1000));
+const sleep = (ms = 1000) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Converts a title string to DB key form by replacing any spaces with underscores.

@@ -9,7 +9,7 @@ describe('The watchlist', function testWatch() {
     const edits = {};
 
     before(async () => {
-        [, alice] = await Promise.all( [
+        [, alice] = await Promise.all([
             walter.account('Walter_'),
             fixtures.alice()
         ]);
