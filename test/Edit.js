@@ -3,9 +3,6 @@ const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
 describe('The edit action', function testEditAction() {
-    // disable timeouts
-    this.timeout(0);
-
     let alice;
 
     before(async () => {

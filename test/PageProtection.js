@@ -3,9 +3,6 @@ const api = require('../actionapi');
 const fixtures = require('../fixtures');
 
 describe('Test page protection levels and effectiveness', function () {
-    // disable timeouts
-    this.timeout(0);
-
     // users
     let admin, wikiUser;
     const anonymousUser = new api.Client();

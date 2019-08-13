@@ -3,9 +3,6 @@ const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
 describe('The watchlist', function testWatch() {
-    // disable timeouts
-    this.timeout(0);
-
     let alice;
     const walter = new api.Client();
     const title = api.title('Watch_');

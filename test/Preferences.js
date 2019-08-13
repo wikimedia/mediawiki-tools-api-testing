@@ -2,9 +2,6 @@ const { assert } = require('chai');
 const fixture = require('../fixtures');
 
 describe("Changing a user's preferences", function () {
-    // disable timeouts
-    this.timeout(0);
-
     let alice;
 
     before(async () => {

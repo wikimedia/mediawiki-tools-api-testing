@@ -3,9 +3,6 @@ const api = require('../actionapi');
 const fixture = require('../fixtures');
 
 describe('Testing default autopatrolling rights', function () {
-    // disable timeouts
-    this.timeout(0);
-
     const anonymousUser = new api.Client();
     let title, mindy;
 

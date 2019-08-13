@@ -3,9 +3,6 @@ const fixtures = require('../fixtures');
 const { Client } = require('../actionapi');
 
 describe('Testing a new talk page notification', function () {
-    // disable timeouts
-    this.timeout(0);
-
     let kam = new Client();
     let alice;
 

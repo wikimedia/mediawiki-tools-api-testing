@@ -3,9 +3,6 @@ const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
 describe('Links', function testLinks() {
-    // disable timeouts
-    this.timeout(0);
-
     const titles = (list) => list.map((p)=>api.dbkey(p.title));
 
     const pageX = api.title('LinkTest_X_');

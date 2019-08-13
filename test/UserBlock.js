@@ -3,9 +3,6 @@ const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
 describe('The block/unblock action', function testBlockingAUser() {
-    // disable timeouts
-    this.timeout(0);
-
     let eve = new api.Client();
     let pageTitle, mindy;
 

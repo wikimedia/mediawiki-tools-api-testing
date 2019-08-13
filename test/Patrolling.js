@@ -3,9 +3,6 @@ const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
 describe('The patrol action', function testEditPatrolling() {
-    // disable timeouts
-    this.timeout(0);
-
     let alice, mindy, edit, rc;
     const pageTitle = api.title('Patroll_');
 

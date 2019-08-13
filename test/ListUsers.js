@@ -2,9 +2,6 @@ const { assert } = require('chai');
 const api = require('../actionapi');
 
 describe('Listing Users', function () {
-    // disable timeouts
-    this.timeout(0);
-
     let prefix;
 
     // users

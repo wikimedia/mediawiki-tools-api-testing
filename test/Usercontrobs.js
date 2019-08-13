@@ -2,9 +2,6 @@ const { assert } = require('chai');
 const api = require('../actionapi');
 
 describe('The usercontribs list query', function testUserContribsListQuery() {
-    // disable timeouts
-    this.timeout(0);
-
     const titleX = api.title('Contribs_');
     const titleY = api.title('Talk:Contribs_');
 

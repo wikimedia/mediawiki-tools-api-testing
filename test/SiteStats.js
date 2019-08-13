@@ -3,9 +3,6 @@ const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
 describe("Testing site statistics' edits value", function () {
-    // disable timeouts
-    this.timeout(0);
-
     const siteStatsParams = {
         meta: 'siteinfo',
         siprop: 'statistics'

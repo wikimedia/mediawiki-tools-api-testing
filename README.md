@@ -76,7 +76,7 @@ To run all tests containing in the test directory, simply type
 You can run individual test files or directories containing test files by
 invoking Mocha directly and pointing it to the desired path:
 
-    $ ./node_modules/.bin/mocha <test-file-or-dir>
+    $ ./node_modules/.bin/mocha <test-file-or-dir> --timeout 0
 
 For more information on running Mocha tests and controlling the output,
 see https://mochajs.org/.

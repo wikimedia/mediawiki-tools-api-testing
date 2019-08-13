@@ -3,9 +3,6 @@ const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
 describe('The delete/undelete action', function testDeleteAction() {
-    // disable timeouts
-    this.timeout(0);
-
     const title = api.title('Delete_');
     let alice, mindy;
 

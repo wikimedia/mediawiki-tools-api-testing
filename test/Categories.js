@@ -3,9 +3,6 @@ const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
 describe('Categories', function testCategories() {
-    // disable timeouts
-    this.timeout(0);
-
     const pageX = api.title('CatTest_X_');
     const pageY = api.title('Talk:CatTest_Y_');
 

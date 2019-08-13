@@ -3,9 +3,6 @@ const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
 describe('The rollback action', function testEditRollback() {
-    // disable timeouts
-    this.timeout(0);
-
     let alice, bob, mindy;
 
     before(async () => {

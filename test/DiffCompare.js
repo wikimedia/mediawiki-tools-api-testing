@@ -3,9 +3,6 @@ const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
 describe('Diff Compare with Variables', function () {
-    // disable timeouts
-    this.timeout(0);
-
     let wikiuser;
     const title = api.title('DiffCompare');
     const variables = {};
