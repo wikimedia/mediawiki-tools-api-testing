@@ -4,5 +4,8 @@
   "root_user": {
     "name": "Admin",
     "password": "dockerpass"
+  },
+  "extra_parameters": {
+    "xdebug_session": "PHPSTORM"
   }
 }

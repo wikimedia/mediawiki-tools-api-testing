@@ -122,7 +122,8 @@ class Client {
         // TODO: convert any arrays in params to strings
         const defaultParams = {
             action: actionName,
-            format: 'json'
+            format: 'json',
+            ...config.extra_parameters
         };
 
         let req;
