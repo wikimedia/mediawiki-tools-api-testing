@@ -12,60 +12,35 @@ describe('The edit action', function testEditAction() {
     const pageA = api.title('Edit_A_');
     const edits = {};
 
-    const testCreateAndModify = async (page, user) => {
-        const page2 = `${page}2`;
-        const obj = {};
-        obj[page] = await user.edit(page, {
-            text: 'Initial content',
-            summary: 'create'
+    const testEditAndLog = async (page, user) => {
+        const edit = await user.edit(page, {
+            text: api.uniq(),
+            summary: api.uniq()
         });
 
         const rev1 = await user.getRevision(page);
-        assert.equal(rev1.revid, obj[page].newrevid);
-        assert.equal(rev1.user, obj[page].param_user);
-        assert.equal(rev1.comment, obj[page].param_summary);
-        assert.equal(rev1.timestamp, obj[page].newtimestamp);
-        assert.equal(rev1.slots.main['*'], obj[page].param_text);
+        assert.equal(rev1.revid, edit.newrevid);
+        assert.equal(rev1.user, edit.param_user);
+        assert.equal(rev1.comment, edit.param_summary);
+        assert.equal(rev1.timestamp, edit.newtimestamp);
+        assert.equal(rev1.slots.main['*'], edit.param_text);
 
         const rc1 = await user.getChangeEntry({ rctitle: page });
-        assert.equal(rc1.type, 'new');
-        assert.equal(rc1.revid, obj[page].newrevid);
-        assert.equal(rc1.user, obj[page].param_user);
-        assert.equal(rc1.comment, obj[page].param_summary);
-        assert.equal(rc1.timestamp, obj[page].newtimestamp);
+        assert.equal(rc1.type, edit.oldrevid ? 'edit' : 'new');
+        assert.equal(rc1.revid, edit.newrevid);
+        assert.equal(rc1.user, edit.param_user);
+        assert.equal(rc1.comment, edit.param_summary);
+        assert.equal(rc1.timestamp, edit.newtimestamp);
 
         const html1 = await user.getHtml(page);
-        assert.match(html1, /Initial content/);
+        assert.include(html1, edit.param_text);
 
-        obj[page2] = await user.edit(page, {
-            text: 'Updated content',
-            summary: 'update'
-        });
-
-        const rev2 = await user.getRevision(page);
-        assert.equal(rev2.revid, obj[page2].newrevid);
-        assert.equal(rev2.user, obj[page2].param_user);
-        assert.equal(rev2.comment, obj[page2].param_summary);
-        assert.equal(rev2.timestamp, obj[page2].newtimestamp);
-        assert.equal(rev2.slots.main['*'], obj[page2].param_text);
-
-        const rc2 = await user.getChangeEntry({ rctitle: page });
-        assert.equal(rc2.type, 'edit');
-        assert.equal(rc2.revid, obj[page2].newrevid);
-        assert.equal(rc2.user, obj[page2].param_user);
-        assert.equal(rc2.comment, obj[page2].param_summary);
-        assert.equal(rc2.timestamp, obj[page2].newtimestamp);
-
-        const html2 = await user.getHtml(page);
-        assert.match(html2, /Updated content/);
-        return obj;
+        return edit;
     };
 
     it('allows a page to be created and modified by a logged in user', async () => {
-        const result = await testCreateAndModify(pageA, alice);
-
-        edits[pageA] = result[pageA];
-        edits.page2 = result[`${pageA}2`];
+        edits.pageA1 = await testEditAndLog(pageA, alice);
+        edits.pageA2 = await testEditAndLog(pageA, alice);
     });
 
     it('allows a page to be created and modified by an anonymous user', async () => {
@@ -74,12 +49,12 @@ describe('The edit action', function testEditAction() {
         const { name } = await anon.meta('userinfo', {});
         anon.username = name;
 
-        await testCreateAndModify(title, anon);
+        await testEditAndLog(title, anon);
     });
 
     it('skips redundant edit', async () => {
         const result = await alice.edit(pageA, {
-            text: edits.page2.param_text,
+            text: edits.pageA2.param_text,
             summary: 'some new fancy comment'
         });
 
@@ -91,9 +66,9 @@ describe('The edit action', function testEditAction() {
         const log = await alice.getLogEntry({ letitle: pageA, letype: 'create' });
 
         assert.equal(log.action, 'create');
-        assert.equal(log.user, edits[pageA].param_user);
-        assert.equal(log.comment, edits[pageA].param_summary);
-        assert.equal(log.timestamp, edits[pageA].newtimestamp);
+        assert.equal(log.user, edits.pageA1.param_user);
+        assert.equal(log.comment, edits.pageA1.param_summary);
+        assert.equal(log.timestamp, edits.pageA1.newtimestamp);
     });
 
     it('applies pre-save transform', async () => {
