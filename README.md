@@ -80,3 +80,36 @@ invoking Mocha directly and pointing it to the desired path:
 
 For more information on running Mocha tests and controlling the output,
 see https://mochajs.org/.
+
+### Resetting the target wiki
+Before running tests, it's advisable to ensure a known state of the wiki the tests run against.
+While tests should be written to be robust against pre-existing content, e.g. by randomizing all
+resource names, a known base state is useful. Also, test runs tend to pollute the wiki a lot,
+so a reset is bound to save space, even if not done for every test run.
+
+The easiest way to achieve a known state of the wiki is to take a snapshot of that known state,
+preferably right after installation, when the wiki contains just one page and one user, and then
+loading that dump into the database before running tests. For convenience, two scripts are
+supplied to achieve this for a MediaWiki-Docker-Dev environment:
+
+    $ bin/medd-take-snapshot <name.tar> [db]
+
+This saves a snapshot of a wiki in the given tar file. The `[db]` parameter is the database name,
+which is the name you gave your wiki when running the `addsite` script. If not given, `"default"`
+is used, which is the name of the wiki pre-installed by MediaWiki-Docker-Dev.
+
+    $ bin/medd-load-snapshot <name.tar> [db]
+
+This restores the snapshot in the given tar file. The tar file contains the name of the wiki
+database the snapshot was taken from. If the `[db]` parameter is not given, the dump will be loaded
+into that same database. The name of the database is also shown in the confirmation prompt.
+
+Before you can use these scripts, you need to configure the location of your MediaWiki-Docker-Dev
+installation in bin/local.env:
+
+```
+MWDD_DIR="../../mediawiki-docker-dev"
+```
+
+Set this to something like `$HOME/opt/mediawiki-docker-dev/` or wherever you have installed
+MediaWiki-Docker-Dev.
