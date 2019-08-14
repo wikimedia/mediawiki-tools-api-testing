@@ -98,8 +98,36 @@ so a reset is bound to save space, even if not done for every test run.
 
 The easiest way to achieve a known state of the wiki is to take a snapshot of that known state,
 preferably right after installation, when the wiki contains just one page and one user, and then
-loading that dump into the database before running tests. For convenience, two scripts are
-supplied to achieve this for a MediaWiki-Docker-Dev environment:
+loading that dump into the database before running tests. For convenience, two pairs of scripts are
+supplied to achieve this, one pair for use with a local MediaWiki installation, and another pair
+for a MediaWiki-Docker-Dev environment.
+
+#### Local snapshots
+If you have MediaWiki installed locally, you can use:
+
+    $ bin/take-snapshot <name.tar> [db] [host]
+
+This saves a snapshot of a wiki in the given tar file. The `[db]` parameter is the database name.
+If not given, `"wiki"` is used, which is the default name proposed by the MediaWiki installer.
+The `[host]` parameter allows the database host to be specified, in case it's not localhost.
+
+    $ bin/medd-load-snapshot <name.tar> [db] [host]
+
+This restores the snapshot in the given tar file. The tar file contains the name of the wiki
+database the snapshot was taken from. If the `[db]` parameter is not given, the dump will be loaded
+into that same database. The name of the database is also shown in the confirmation prompt.
+
+Before you can use these scripts, you need to configure the location of your MediaWiki
+installation in bin/local.env:
+
+```
+MW_DIR="../../mediawiki"
+```
+
+Set this to something like `/var/www/html/mediawiki/` or wherever you have installed MediaWiki.
+
+#### MediaWiki-Docker-Dev snapshots
+If you have your wiki instances managed by MediaWiki-Docker-Dev, you can use:
 
     $ bin/mwdd-take-snapshot <name.tar> [db]
 
