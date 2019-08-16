@@ -5,6 +5,7 @@
     "name": "Admin",
     "password": "dockerpass"
   },
+  "secret_key": "",
   "extra_parameters": {
     "xdebug_session": "PHPSTORM"
   }

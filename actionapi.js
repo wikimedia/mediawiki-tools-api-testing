@@ -1,4 +1,6 @@
 const { assert } = require('chai');
+const crypto = require('crypto');
+const querystring = require('querystring');
 const supertest = require('supertest');
 const config = require('./config.json');
 
@@ -49,6 +51,86 @@ const dbkey = (title) => title.replace( / /g, '_');
  */
 const sameTitle = (a, b) => assert.equal(dbkey(a), dbkey(b));
 
+/**
+ * Runs some pending jobs.
+ *
+ * @param {int} n The number of jobs to run.
+ * @returns {Promise<number>} Zero if there are no more jobs to be run,
+ * and a number grater than zero if there are more jobs ready to be run.
+ * That number may or may not represent the number of jobs remaining
+ * in the queue.
+ */
+const runJobs = async (n=1) => {
+    if (config.secret_key == '') {
+        throw Error('Missing secret_key configuration value. ' +
+            'Set secret_key to the value of $wgSecretKey from LocalSettings.php');
+    }
+
+    const sig = (params) => {
+        const data = {};
+        const keys = Object.keys(params).sort();
+
+        for( k of keys ) {
+            data[k] = params[k]
+        }
+
+        const s = querystring.stringify(data);
+        const hmac = crypto.createHmac('sha1', config.secret_key).update(s);
+        return hmac.digest('hex');
+    };
+
+    const client = new Client();
+    const params = {
+        title: 'Special:RunJobs',
+        maxjobs: n,
+        maxtime: Math.max(n*10, 60),
+        async: '', // false
+        stats: '1', // true
+        tasks: '', // what does this mean?
+        sigexpiry: Math.ceil(Date.now()/1000 + 60*60) // one hour
+    };
+
+    params.signature = sig(params);
+
+    const response = await client.request(params, 'POST', 'index.php');
+
+    assert.isDefined(response.body);
+    assert.isDefined(response.body.reached);
+
+    if ( response.body.reached === 'none-ready' ) {
+        // The backend reports that no more jobs are ready.
+        return 0;
+    } else {
+        // If response.body.jobs is empty, we may be hitting an infinite
+        // loop here. That should not happen.
+        assert.isNotEmpty(response.body.jobs);
+
+        // There is no reliable way to get the current size of the job queue.
+        // Just return some number to indicate that there is more work to be done.
+        return 100.
+    }
+};
+
+/**
+ * Returns a promise that will resolve when all jobs in the wiki's job queue
+ * have been run.
+ *
+ * @returns {Promise<void>}
+ */
+const runAllJobs = async () => {
+    const log = () => {}; // TODO: allow optional logging
+
+    while (true) {
+        log('Running jobs...');
+        const jobsRemaining = await runJobs(10);
+
+        if (jobsRemaining) {
+            log(`Still ${jobsRemaining} in the queue.`);
+        } else {
+            break;
+        }
+    }
+};
 
 class Client {
     /**
@@ -112,27 +194,26 @@ class Client {
      * and can still be modified like a superagent request.
      * Call end() or then(), use use await to send the request.
      *
-     * @param {string} actionName
      * @param {Object} params
      * @param {boolean|string} post
+     * @param {string} endpoint
      * @return {Promise<*>}
      */
-    async request(actionName, params, post = false) {
+    async request(params, post = false, endpoint='api.php') {
         // TODO: it would be nice if we could resolve/await any promises in params
         // TODO: convert any arrays in params to strings
         const defaultParams = {
-            action: actionName,
             format: 'json',
             ...config.extra_parameters
         };
 
         let req;
         if (post) {
-            req = this.req.post('api.php')
+            req = this.req.post(endpoint)
                 .type('form')
                 .send({ ...defaultParams, ...params });
         } else {
-            req = this.req.get('api.php')
+            req = this.req.get(endpoint)
                 .query({ ...defaultParams, ...params });
         }
 
@@ -149,7 +230,10 @@ class Client {
      * @return {Promise<Object>}
      */
     async action(actionName, params, post = false) {
-        const response = await this.request(actionName, params, post);
+        const response = await this.request(
+            { action: actionName, ...params },
+            post
+        );
 
         assert.equal(response.status, 200);
         assert.exists(response.body);
@@ -218,12 +302,15 @@ class Client {
      *
      * @param {string} meta
      * @param {Object} params
+     * @param {string} field
      * @return {Promise<Object>}
      */
-    async meta(meta, params) {
+    async meta(meta, params, field = null) {
         const defaults = { meta };
         const result = await this.action('query', { ...defaults, ...params });
-        return result.query[meta];
+
+        const key = field || meta;
+        return result.query[key];
     }
 
     /**
@@ -237,7 +324,10 @@ class Client {
      * @return {Promise<Object>}
      */
     async actionError(actionName, params, post = false) {
-        const response = await this.request(actionName, params, post);
+        const response = await this.request(
+            { action: actionName, ...params },
+            post
+        );
 
         assert.equal(response.status, 200);
         assert.exists(response.body);
@@ -337,6 +427,8 @@ class Client {
         result.edit.param_text = effectiveParams.text;
         result.edit.param_summary = effectiveParams.summary;
         result.edit.param_user = this.username;
+
+        await runAllJobs();
         return result.edit;
     }
 
@@ -485,6 +577,11 @@ module.exports = {
      * @returns {string}
      */
     dbkey,
+
+    /**
+     * Waits until the MediaWiki JobQueue is reported to be empty.
+     */
+    runAllJobs,
 
     /**
      * Convenient assertions

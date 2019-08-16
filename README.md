@@ -40,12 +40,20 @@ the target wiki. This configuration is contained in the `config.json` file:
   "root_user": {
     "name": "Admin",
     "password": "dockerpass"
+  },
+  "secret_key": "",
+  "extra_parameters": {
+    "xdebug_session": "PHPSTORM"
   }
 }
 ```
 
 The default values were chosen to "Just Work" with a default setup of
-MediaWiki-Docker-Dev (see above).
+MediaWiki-Docker-Dev (see above), you just have to supply the target wiki's
+`$wgSecretKey` in the `secret_key` configuration option. `$wgSecretKey`
+can be found in the wiki's LocalSettings.php - if you are using
+MediaWiki-Docker-Dev, this file can be found under `config/mediawiki/`.
+
 If you have a custom setup, you need to provide the following configuration settings:
 
 * `base_uri`: Full base URI of the MediaWiki installation to target.
@@ -93,13 +101,13 @@ preferably right after installation, when the wiki contains just one page and on
 loading that dump into the database before running tests. For convenience, two scripts are
 supplied to achieve this for a MediaWiki-Docker-Dev environment:
 
-    $ bin/medd-take-snapshot <name.tar> [db]
+    $ bin/mwdd-take-snapshot <name.tar> [db]
 
 This saves a snapshot of a wiki in the given tar file. The `[db]` parameter is the database name,
 which is the name you gave your wiki when running the `addsite` script. If not given, `"default"`
 is used, which is the name of the wiki pre-installed by MediaWiki-Docker-Dev.
 
-    $ bin/medd-load-snapshot <name.tar> [db]
+    $ bin/mwdd-load-snapshot <name.tar> [db]
 
 This restores the snapshot in the given tar file. The tar file contains the name of the wiki
 database the snapshot was taken from. If the `[db]` parameter is not given, the dump will be loaded
