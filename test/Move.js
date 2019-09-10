@@ -3,37 +3,38 @@ const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
 describe('Move action', function () {
+    const userPage = api.title('MoveWith_');
     const page1 = api.title('MoveWithout_');
-    const page2 = api.title('MoveWith_');
+    const page2 = `User:${userPage}`;
     const page1Subpage = api.title();
     const page2Subpage = api.title();
     const page1Talk = `Talk:${page1}`;
-    const page2Talk = `Talk:${page2}`;
-    let alice;
+    const page2Talk = `User_talk:${userPage}`;
+    let mindy;
 
     before(async () => {
-        alice = await fixtures.alice();
+        mindy = await fixtures.mindy();
 
         // creating page1, a subpage, and talkpage
-        await alice.edit(page1, { text: 'Move without redirect, subpage and talkpage' });
-        await alice.edit(`${page1}/${page1Subpage}`, { text: `Subpage of ${page1}` });
-        await alice.edit(page1Talk, { text: `Talk page of ${page1}` });
+        await mindy.edit(page1, { text: 'Move without redirect, subpage and talkpage' });
+        await mindy.edit(`${page1}/${page1Subpage}`, { text: `Subpage of ${page1}` });
+        await mindy.edit(page1Talk, { text: `Talk page of ${page1}` });
 
         // creating page2, a subpage, and talkpage
-        await alice.edit(page2, { text: 'Move with redirect, subpage and talkpage' });
-        await alice.edit(`${page2}/${page2Subpage}`, { text: `Subpage of ${page2}` });
-        await alice.edit(page2Talk, { text: `Talk page of ${page2}` });
+        await mindy.edit(page2, { text: 'Move with redirect, subpage and talkpage' });
+        await mindy.edit(`${page2}/${page2Subpage}`, { text: `Subpage of ${page2}` });
+        await mindy.edit(page2Talk, { text: `Talk page of ${page2}` });
     });
 
     it('should move a page without a redirect or its subpages and talkpages', async () => {
         const newPage1 = `${page1}_${api.title()}`;
-        const { move } = await alice.action('move',
+        const { move } = await mindy.action('move',
             {
                 from: page1,
                 to: newPage1,
                 noredirect: true,
                 reason: 'testing',
-                token: alice.tokens.csrftoken
+                token: mindy.tokens.csrftoken
             },
             'POST');
 
@@ -45,24 +46,25 @@ describe('Move action', function () {
         assert.notExists(move.talkto);
         assert.notExists(move.talkfrom);
 
-        const newPage = await alice.getHtml(newPage1);
-        const oldPage = await alice.actionError('parse', { page: page1 });
+        const newPage = await mindy.getHtml(newPage1);
+        const oldPage = await mindy.actionError('parse', { page: page1 });
 
         assert.match(newPage, /Move without redirect, subpage and talkpage/);
         assert.equal(oldPage.code, 'missingtitle');
     });
 
     it('should move a page with a redirect and its subpages and talkpages', async () => {
-        const newPage2 = `${page2}_${api.title()}`;
-        const newPage2Talk = `Talk:${newPage2}`;
-        const { move } = await alice.action('move',
+        const newTitle = api.title('Move_');
+        const newPage2 = `User:${newTitle}`;
+        const newPage2Talk = `User_talk:${newTitle}`;
+        const { move } = await mindy.action('move',
             {
                 from: page2,
                 to: newPage2,
                 reason: 'testing',
                 movetalk: '',
                 movesubpages: '',
-                token: alice.tokens.csrftoken
+                token: mindy.tokens.csrftoken
             },
             'POST');
 
@@ -76,8 +78,8 @@ describe('Move action', function () {
         assert.exists(move.redirectcreated);
         assert.exists(move['subpages-talk']);
 
-        const newPage = await alice.getHtml(newPage2);
-        const oldPage = await alice.getHtml(page2);
+        const newPage = await mindy.getHtml(newPage2);
+        const oldPage = await mindy.getHtml(page2);
 
         assert.match(newPage, /Move with redirect, subpage and talkpage/);
         assert.include(oldPage, 'Redirect to:');
