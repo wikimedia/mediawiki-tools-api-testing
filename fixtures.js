@@ -1,6 +1,7 @@
 const { assert } = require('chai');
 const api = require('./actionapi');
-const config = require('./config.json');
+const getConfigFilename = require('./config');
+const config = require(getConfigFilename());
 
 module.exports = {
 

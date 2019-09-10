@@ -7,12 +7,15 @@ HTTP testing library, the [Chai](https://www.npmjs.com/package/chai) assertion
 library, and the [Mocha](https://www.npmjs.com/package/mocha) testing framework.
 
 ## Install
+
 To run the API test suite, you need to have [node.js](https://nodejs.org/)
 and [npm](https://www.npmjs.com/) installed.
 
 Installation of the testing environment can then be done with npm:
 
+```bash
     $ npm i
+```
 
 ## Running Tests
 
@@ -30,8 +33,8 @@ to provide all necessary services for MediaWiki, such as a database and caching.
 
 ### Configuration
 
-The Action API test suite needs some configuration that tells it how to access
-the target wiki. This configuration is contained in the `config.json` file:
+The Action API test Suite needs some configuration that tells it how to access
+the target wiki. A default configuration is contained in the `configs/default.json` file:
 
 ```json
 {
@@ -53,6 +56,17 @@ MediaWiki-Docker-Dev (see above), you just have to supply the target wiki's
 `$wgSecretKey` in the `secret_key` configuration option. `$wgSecretKey`
 can be found in the wiki's LocalSettings.php - if you are using
 MediaWiki-Docker-Dev, this file can be found under `config/mediawiki/`.
+
+To use a custom configuration file, create a `local.json` file either in the root folder or
+the `configs` folder. For automated testing, an environment variable `API_TESTING_CONFIG_FILE` can
+be set to point to the correct configuration file.
+
+The configuration file is evaluated in the following order:
+
+1) `API_TESTING_CONFIG_FILE` if set
+2) `local.json` if it exists
+3) `configs/local.json`  if it exists
+4) `configs/default.json`
 
 If you have a custom setup, you need to provide the following configuration settings:
 
@@ -77,21 +91,28 @@ compromised may open you up to attacks if it shares a domain or host with a real
 wiki.
 
 ### Running all tests
-To run all tests contained in the test directory:
 
+To run all tests containing in the test directory, simply type
+
+```bash
     $ npm test
+```
 
 ### Running specific tests
+
 You can run individual test files or directories containing test files by
 invoking Mocha directly and pointing it to the desired path:
 
+```bash
     $ ./node_modules/.bin/mocha <test-file-or-dir> --timeout 0
+```
 
 For more information on running Mocha tests and controlling the output,
 see https://mochajs.org/.
 
 ### Resetting the target wiki
-Before running tests, it's advisable to ensure that the test wiki is in a known state.
+
+Before running tests, it's advisable to ensure a known state of the wiki the tests run against.
 While tests should be written to be robust against pre-existing content, e.g. by randomizing all
 resource names, a known base state is useful. Also, test runs tend to pollute the wiki a lot,
 so a reset is bound to save space, even if not done for every test run.
@@ -129,13 +150,17 @@ Set this to something like `/var/www/html/mediawiki/` or wherever you have insta
 #### MediaWiki-Docker-Dev snapshots
 If you have your wiki instances managed by MediaWiki-Docker-Dev, you can use:
 
+```bash
     $ bin/mwdd-take-snapshot <name.tar> [db]
+```
 
 This saves a snapshot of a wiki in the given tar file. The `[db]` parameter is the database name,
 which is the name you gave your wiki when running the `addsite` script. If not given, `"default"`
 is used, which is the name of the wiki pre-installed by MediaWiki-Docker-Dev.
 
+```bash
     $ bin/mwdd-load-snapshot <name.tar> [db]
+```
 
 This restores the snapshot in the given tar file. The tar file contains the name of the wiki
 database the snapshot was taken from. If the `[db]` parameter is not given, the dump will be loaded
@@ -144,8 +169,8 @@ into that same database. The name of the database is also shown in the confirmat
 Before you can use these scripts, you need to configure the location of your MediaWiki-Docker-Dev
 installation in bin/local.env:
 
-```
-MWDD_DIR="../../mediawiki-docker-dev"
+```bash
+    MWDD_DIR="../../mediawiki-docker-dev"
 ```
 
 Set this to something like `$HOME/opt/mediawiki-docker-dev/` or wherever you have installed

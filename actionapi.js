@@ -2,7 +2,8 @@ const { assert } = require('chai');
 const crypto = require('crypto');
 const querystring = require('querystring');
 const supertest = require('supertest');
-const config = require('./config.json');
+const getConfigFilename = require('./config');
+const config = require(getConfigFilename());
 
 /**
  * Returns a unique string of random alphanumeric characters.
@@ -10,7 +11,7 @@ const config = require('./config.json');
  * @param {int} n the desired number of characters
  * @return {string}
  */
-const uniq = (n=10) => {
+const uniq = (n = 10) => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
 
@@ -33,21 +34,22 @@ const title = (prefix = '') => {
 /**
  * Returns a promise that will resolve in no less than the given number of milliseconds.
  * @param {int} ms wait time in milliseconds
- * @returns {Promise<void>}
+ * @return {Promise<void>}
  */
 const sleep = (ms = 1000) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Converts a title string to DB key form by replacing any spaces with underscores.
  * @param {string} title
- * @returns {string}
+ * @return {string}
  */
-const dbkey = (title) => title.replace( / /g, '_');
+const dbkey = (title) => title.replace(/ /g, '_');
 
 /**
  * Compares two titles, applying some normalization
- * @param a
- * @param b
+ * @param {string} a
+ * @param {string} b
+ * @return {bool} True if the titles are equal
  */
 const sameTitle = (a, b) => assert.equal(dbkey(a), dbkey(b));
 
@@ -55,13 +57,13 @@ const sameTitle = (a, b) => assert.equal(dbkey(a), dbkey(b));
  * Runs some pending jobs.
  *
  * @param {int} n The number of jobs to run.
- * @returns {Promise<number>} Zero if there are no more jobs to be run,
+ * @return {Promise<number>} Zero if there are no more jobs to be run,
  * and a number grater than zero if there are more jobs ready to be run.
  * That number may or may not represent the number of jobs remaining
  * in the queue.
  */
-const runJobs = async (n=1) => {
-    if (config.secret_key == '') {
+const runJobs = async (n = 1) => {
+    if (config.secret_key === '') {
         throw Error('Missing secret_key configuration value. ' +
             'Set secret_key to the value of $wgSecretKey from LocalSettings.php');
     }
@@ -70,8 +72,8 @@ const runJobs = async (n=1) => {
         const data = {};
         const keys = Object.keys(params).sort();
 
-        for( k of keys ) {
-            data[k] = params[k]
+        for (var k of keys) {
+            data[k] = params[k];
         }
 
         const s = querystring.stringify(data);
@@ -83,21 +85,20 @@ const runJobs = async (n=1) => {
     const params = {
         title: 'Special:RunJobs',
         maxjobs: n,
-        maxtime: Math.max(n*10, 60),
+        maxtime: Math.max(n * 10, 60),
         async: '', // false
         stats: '1', // true
         tasks: '', // what does this mean?
-        sigexpiry: Math.ceil(Date.now()/1000 + 60*60) // one hour
+        sigexpiry: Math.ceil(Date.now() / 1000 + 60 * 60) // one hour
     };
 
     params.signature = sig(params);
 
     const response = await client.request(params, 'POST', 'index.php');
 
-    assert.isDefined(response.body);
-    assert.isDefined(response.body.reached);
+    assert.isDefined(response.body.reached, `Text: ${response.text}`);
 
-    if ( response.body.reached === 'none-ready' ) {
+    if (response.body.reached === 'none-ready') {
         // The backend reports that no more jobs are ready.
         return 0;
     } else {
@@ -107,7 +108,7 @@ const runJobs = async (n=1) => {
 
         // There is no reliable way to get the current size of the job queue.
         // Just return some number to indicate that there is more work to be done.
-        return 100.
+        return 100;
     }
 };
 
@@ -115,7 +116,7 @@ const runJobs = async (n=1) => {
  * Returns a promise that will resolve when all jobs in the wiki's job queue
  * have been run.
  *
- * @returns {Promise<void>}
+ * @return {Promise<void>}
  */
 const runAllJobs = async () => {
     const log = () => {}; // TODO: allow optional logging
@@ -199,7 +200,7 @@ class Client {
      * @param {string} endpoint
      * @return {Promise<*>}
      */
-    async request(params, post = false, endpoint='api.php') {
+    async request(params, post = false, endpoint = 'api.php') {
         // TODO: it would be nice if we could resolve/await any promises in params
         // TODO: convert any arrays in params to strings
         const defaultParams = {
@@ -365,8 +366,10 @@ class Client {
 
         this.tokens = { ...this.tokens, ...newTokens };
 
+        /* eslint-disable max-len */
         // const session = this.req.jar.getCookie('default_session', cookiejar.CookieAccessInfo.All);
         // console.log(`token(${ttype}): user id ${this.userid}: ${JSON.stringify(this.tokens)} (session: ${session})`);
+        /* eslint-enable max-len */
 
         assert.exists(this.tokens[tname]);
         return this.tokens[tname];
@@ -410,13 +413,13 @@ class Client {
         const effectiveParams = {
             ...{
                 title: pageTitle,
-                summary: 'testing',
+                summary: 'testing'
             },
             ...params
         };
 
         // use a unique default text
-        effectiveParams.text = effectiveParams.text || 'Lorem ipsum ' + uniq();
+        effectiveParams.text = effectiveParams.text || 'Lorem ipsum ' + uniq(); // eslint-disable-line
 
         effectiveParams.token = params.token || await this.token('csrf');
 
@@ -436,14 +439,14 @@ class Client {
      * Returns a revision record of the given page.
      * If revid is not given or 0, the latest revision is returned.
      *
-     * @param pageTitle
-     * @param revid
-     * @returns {Promise<Object>}
+     * @param {string} pageTitle
+     * @param {int} revid
+     * @return {Promise<Object>}
      */
     async getRevision(pageTitle, revid = 0) {
         const params = {
             rvslots: 'main',
-            rvprop: 'ids|user|comment|content|timestamp|flags|contentmodel',
+            rvprop: 'ids|user|comment|content|timestamp|flags|contentmodel'
         };
 
         if (revid) {
@@ -467,8 +470,8 @@ class Client {
     /**
      * Returns the newest log entry matching the given parameters.
      *
-     * @param params
-     * @returns {Promise<Object>}
+     * @param {Object} params
+     * @return {Promise<Object>}
      */
     async getLogEntry(params) {
         const list = await this.list('logevents', {
@@ -485,8 +488,8 @@ class Client {
     /**
      * Returns the newest recent changes entry matching the given parameters.
      *
-     * @param params
-     * @returns {Promise<Object>}
+     * @param {Object} params
+     * @return {Promise<Object>}
      */
     async getChangeEntry(params) {
         const list = await this.list('recentchanges', {
@@ -504,7 +507,7 @@ class Client {
         const result = await this.action('parse', { page: title });
 
         const html = result.parse.text['*'];
-        return html.replace( /<!--[^]*?-->/g, '');
+        return html.replace(/<!--[^]*?-->/g, '');
     }
 
     /**
@@ -587,13 +590,12 @@ module.exports = {
     /**
      * Convenient assertions
      */
-    'assert': {
+    assert: {
         /**
          * Compares two titles, applying some normalization
          * @param a
          * @param b
          */
-        sameTitle,
-    },
-
+        sameTitle
+    }
 };
