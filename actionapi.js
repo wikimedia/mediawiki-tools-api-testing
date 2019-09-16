@@ -503,7 +503,8 @@ class Client {
     async getHtml(title) {
         const result = await this.action('parse', { page: title });
 
-        return result.parse.text['*'];
+        const html = result.parse.text['*'];
+        return html.replace( /<!--[^]*?-->/g, '');
     }
 
     /**
