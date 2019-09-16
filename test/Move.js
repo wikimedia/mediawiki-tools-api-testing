@@ -78,11 +78,12 @@ describe('Move action', function () {
         assert.exists(move.redirectcreated);
         assert.exists(move['subpages-talk']);
 
-        const newPage = await mindy.getHtml(newPage2);
-        const oldPage = await mindy.getHtml(page2);
+        const newPageHtml = await mindy.getHtml(newPage2);
+        assert.match(newPageHtml, /Move with redirect, subpage and talkpage/);
 
-        assert.match(newPage, /Move with redirect, subpage and talkpage/);
-        assert.include(oldPage, 'Redirect to:');
-        assert.include(oldPage, `title=${newPage2}`);
+        const redirectInfo = await mindy.action('query', { titles: page2, redirects: true });
+        assert.isDefined(redirectInfo.query.redirects, page2);
+        api.assert.sameTitle(redirectInfo.query.redirects[0].from, page2);
+        api.assert.sameTitle(redirectInfo.query.redirects[0].to, newPage2);
     });
 });
