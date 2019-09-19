@@ -18,10 +18,6 @@ module.exports = {
 
         await root.loadTokens(['createaccount', 'userrights', 'csrf']);
 
-        // FIXME: Something is wrong with the async stuff here, and Daniel can't figure out what.
-        //   Without the sleep, the userrights token is sometimes the anon token, '+\\',
-        //   which leads to silent failure of addGroups. None of this makes any sense.
-        api.sleep(1000);
         const rightsToken = await root.token('userrights');
         assert.notEqual(rightsToken, '+\\');
 
@@ -44,6 +40,10 @@ module.exports = {
         uname = account.username;
 
         if (groups.length) {
+            // HACK: This reduces the chance of race conditions due to
+            // replication lag. For the proper solution, see T230211.
+            api.runAllJobs();
+
             const groupResult = await root.addGroups(uname, groups);
             assert.sameMembers(groupResult.added, groups);
         }
