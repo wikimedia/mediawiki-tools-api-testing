@@ -11,7 +11,7 @@ describe('Test page protection levels and effectiveness', function () {
     const semiProtectedPage = api.title('SemiProtected_');
 
     before(async () => {
-        admin = await fixtures.root();
+        admin = await fixtures.mindy();
         wikiUser = await fixtures.alice();
 
         // Get edit token for admin
