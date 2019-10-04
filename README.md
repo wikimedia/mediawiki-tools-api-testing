@@ -7,7 +7,7 @@ HTTP testing library, the [Chai](https://www.npmjs.com/package/chai) assertion
 library, and the [Mocha](https://www.npmjs.com/package/mocha) testing framework.
 
 ## Install
-To run test API test suite, you need to have [node.js](https://nodejs.org/)
+To run the API test suite, you need to have [node.js](https://nodejs.org/)
 and [npm](https://www.npmjs.com/) installed.
 
 Installation of the testing environment can then be done with npm:
@@ -30,7 +30,7 @@ to provide all necessary services for MediaWiki, such as a database and caching.
 
 ### Configuration
 
-The Action API test Suite needs some configuration that tells it how to access
+The Action API test suite needs some configuration that tells it how to access
 the target wiki. This configuration is contained in the `config.json` file:
 
 ```json
@@ -77,7 +77,7 @@ compromised may open you up to attacks if it shares a domain or host with a real
 wiki.
 
 ### Running all tests
-To run all tests containing in the test directory, simply type
+To run all tests contained in the test directory:
 
     $ npm test
 
@@ -91,15 +91,15 @@ For more information on running Mocha tests and controlling the output,
 see https://mochajs.org/.
 
 ### Resetting the target wiki
-Before running tests, it's advisable to ensure a known state of the wiki the tests run against.
+Before running tests, it's advisable to ensure that the test wiki is in a known state.
 While tests should be written to be robust against pre-existing content, e.g. by randomizing all
 resource names, a known base state is useful. Also, test runs tend to pollute the wiki a lot,
 so a reset is bound to save space, even if not done for every test run.
 
-The easiest way to achieve a known state of the wiki is to take a snapshot of that known state,
-preferably right after installation, when the wiki contains just one page and one user, and then
-loading that dump into the database before running tests. For convenience, two pairs of scripts are
-supplied to achieve this, one pair for use with a local MediaWiki installation, and another pair
+The easiest way to achieve a known state of the wiki is to take a snapshot of a known state,
+preferably right after installation when the wiki contains just one page and one user, and then
+load that dump into the database before running tests. For convenience, two pairs of scripts are
+supplied to achieve this: one pair for use with a local MediaWiki installation and another pair
 for a MediaWiki-Docker-Dev environment.
 
 #### Local snapshots
@@ -150,3 +150,7 @@ MWDD_DIR="../../mediawiki-docker-dev"
 
 Set this to something like `$HOME/opt/mediawiki-docker-dev/` or wherever you have installed
 MediaWiki-Docker-Dev.
+
+## Writing tests
+
+For information about writing API tests, see the [wiki page](https://www.mediawiki.org/wiki/MediaWiki_API_Integration_Tests).
