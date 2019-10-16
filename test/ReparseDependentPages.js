@@ -27,7 +27,8 @@ describe('Reparse of dependent pages', function () {
         await alice.edit(link, { text: 'Test link', createonly: true });
     });
 
-    it('should get page with updated template and link', async function () {
+    // FIXME: T230211
+    it.skip('should get page with updated template and link', async function () {
         const { parse } = await alice.action('parse', { page: title });
 
         assert.notInclude(parse.text['*'], 'redlink=1');
