@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npm run lint && mocha test/*.js --timeout 0",
+    "test": "npm run lint && mocha",
     "lint": "eslint --cache --max-warnings 0 --ext .js ."
   },
   "repository": {
