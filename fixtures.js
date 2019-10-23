@@ -43,7 +43,7 @@ module.exports = {
         if (groups.length) {
             // HACK: This reduces the chance of race conditions due to
             // replication lag. For the proper solution, see T230211.
-            api.runAllJobs();
+            await api.runAllJobs();
 
             const groupResult = await root.addGroups(uname, groups);
             assert.sameMembers(groupResult.added, groups);
