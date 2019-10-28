@@ -46,4 +46,28 @@ describe('Revision Compare', () => {
             assert.strictEqual(status, 400);
         });
     });
+
+    describe('GET /revision/{id}/bare', async () => {
+        it('should successfully get information about revision', async () => {
+            const page = api.title('Revision');
+            const { newrevid, pageid, param_summary } = await mindy.edit(page, {
+                text: 'Hello World',
+                summary: 'creating page'
+            });
+            const { status, body } = await client.get(`/revision/${newrevid}/bare`);
+
+            assert.strictEqual(status, 200);
+            assert.strictEqual(body.id, newrevid);
+            assert.deepEqual(body.page, { id: pageid, title: page });
+            assert.nestedProperty(body, 'timestamp');
+            assert.nestedPropertyVal(body, 'user.name', mindy.username);
+            assert.strictEqual(body.comment, param_summary);
+        });
+    });
+
+    it('should return 404 for revision that does not exist', async () => {
+        const { status } = await client.get('/revision/99999999/bare');
+
+        assert.strictEqual(status, 404);
+    });
 });
