@@ -63,7 +63,7 @@ const sameTitle = (a, b) => assert.equal(dbkey(a), dbkey(b));
  * in the queue.
  */
 const runJobs = async (n = 1) => {
-    if (config.secret_key === '') {
+    if (!config.secret_key) {
         throw Error('Missing secret_key configuration value. ' +
             'Set secret_key to the value of $wgSecretKey from LocalSettings.php');
     }
