@@ -1,19 +1,35 @@
 const { assert } = require('chai');
 const fs = require('fs');
+const os = require('os');
+const fsp = fs.promises;
 
-const testRootDir = `${__dirname}/configuration`;
-const testConfigDir = `${testRootDir}/configs`;
+const testRootDir = os.tmpdir();
+const testConfigsDir = `${testRootDir}/configs`;
 
-const renameFile =  (folder, from, to) => fs.existsSync(`${folder}/${from}`) ? fs.renameSync(`${folder}/${from}`, `${folder}/${to}`) : null;
+// Setup our test configs in the temp directory
+const createTestConfigs = async () => {
+    try {
+        await fsp.rmdir(testConfigsDir, { recursive: true }); // cleanup
+    } catch (error) {
+        if (error.code !== 'ENOENT') {
+            throw error;
+        }
+    }
+    const files = [`${testConfigsDir}/quibble.json`, `${testConfigsDir}/example.json`, `${testRootDir}/config.local.json`];
+    await fsp.mkdir(testConfigsDir);
+    const fileWritePromises = files.map((file) => fsp.writeFile(file, '{}'));
+    await Promise.all(fileWritePromises);
+};
 
 describe('Configuration', () => {
     let envVar;
     const getConfig = require('../config');
 
-    before(() => {
+    before(async () => {
         // Save the env var for other tests
         envVar = process.env.API_TESTING_CONFIG_FILE;
         delete process.env.API_TESTING_CONFIG_FILE;
+        await createTestConfigs();
     });
 
     after(() => {
@@ -23,44 +39,29 @@ describe('Configuration', () => {
     });
 
     describe(`Using ${testRootDir} as the configuration root folder`, () => {
-        it('Select full path config set in API_TESTING_CONFIG_FILE env variable over local and default config', () => {
-            process.env.API_TESTING_CONFIG_FILE = `${testRootDir}/quibble.json`;
-            assert.equal(getConfig(testRootDir), `${testRootDir}/quibble.json`);
+        it('Use config.local.json file if API_TESTING_CONFIG_FILE does not exist', () => {
             delete process.env.API_TESTING_CONFIG_FILE;
+            assert.equal(getConfig(testRootDir), `${testRootDir}/config.local.json`);
         });
 
-        it('Select filename only config file set in API_TESTING_CONFIG_FILE env variable over local and default config', () => {
-            process.env.API_TESTING_CONFIG_FILE = 'quibble.json';
-            assert.equal(getConfig(testRootDir), `${testConfigDir}/quibble.json`);
+        it('Select full path config set in API_TESTING_CONFIG_FILE env variable over local config', () => {
+            process.env.API_TESTING_CONFIG_FILE = `${testConfigsDir}/quibble.json`;
+            assert.equal(getConfig(testRootDir), `${testConfigsDir}/quibble.json`);
             delete process.env.API_TESTING_CONFIG_FILE;
         });
 
         it('Throw exception if config file set in API_TESTING_CONFIG_FILE does not exist', () => {
             process.env.API_TESTING_CONFIG_FILE = 'idonotexist.json';
             assert.throws(() => getConfig(testRootDir), Error, /API_TESTING_CONFIG_FILE was set but neither/);
-
             delete process.env.API_TESTING_CONFIG_FILE;
         });
 
-        it('Select local.json in root folder over default.json', () => {
-            assert.equal(getConfig(testRootDir), `${testRootDir}/local.json`);
-        });
-
-        describe('Renaming test root folder "local.json" to ensure "configs/local.json" is chosen', () => {
-            before(() => renameFile(testRootDir, 'local.json', 'local.orig.json'));
-            after(() => renameFile(testRootDir, 'local.orig.json', 'local.json'));
-
-            it('Select local.json in configs folder over default.json', () => {
-                assert.equal(getConfig(testRootDir), `${testConfigDir}/local.json`);
-            });
-        });
-
-        describe('Renaming local.json files to ensure default.json is chosen', () => {
-            before(() => [testRootDir, testConfigDir].forEach((folder) => renameFile(folder, 'local.json', 'local.orig.json')));
-            after(() => [testRootDir, testConfigDir].forEach((folder) => renameFile(folder, 'local.orig.json', 'local.json')));
-
-            it('Select "default.json" if neither local.json is present and API_TESTING_CONFIG_FILE is not set', () => {
-                assert.equal(getConfig(testRootDir), `${testConfigDir}/default.json`);
+        describe('Renaming required root folder config "config.local.json"', () => {
+            it('Throws exception if "config.local.json" doesnt exist and API_TESTING_CONFIG_FILE is not set', () => {
+                delete process.env.API_TESTING_CONFIG_FILE;
+                fs.rename(`${testRootDir}/config.local.json`, `${testRootDir}/wrong.json`, (err) => {
+                    assert.throws(() => getConfig(testRootDir), Error, /Missing local config!/);
+                });
             });
         });
     });

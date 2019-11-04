@@ -3,5 +3,4 @@ node_modules
 .vscode
 package-lock.json
 .eslintcache
-/local.json
-/configs/local.json
+/config.local.json

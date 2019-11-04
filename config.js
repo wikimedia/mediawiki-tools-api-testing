@@ -17,10 +17,11 @@ module.exports = (baseDir = __dirname) => {
             }
         }
     } else {
-        // Check the root folder first then configs dir.
-        requireFile = `${baseDir}/local.json`;
+        // If config.local.json doesnt exist in root folder, throw helpful error
+        const localConfigFile = 'config.local.json';
+        requireFile = `${baseDir}/${localConfigFile}`;
         if (!fs.existsSync(requireFile)) {
-            requireFile = fs.existsSync(`${configsDir}/local.json`) ? `${configsDir}/local.json` : `${configsDir}/default.json`;
+            throw Error(`Missing local config! Please create a ${localConfigFile} config using ${configsDir}/example.json as an example`);
         }
     }
 

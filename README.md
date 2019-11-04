@@ -34,7 +34,7 @@ to provide all necessary services for MediaWiki, such as a database and caching.
 ### Configuration
 
 The Action API test Suite needs some configuration that tells it how to access
-the target wiki. A default configuration is contained in the `configs/default.json` file:
+the target wiki. A default configuration is contained in the `configs/example.json` file:
 
 ```json
 {
@@ -57,16 +57,13 @@ MediaWiki-Docker-Dev (see above), you just have to supply the target wiki's
 can be found in the wiki's LocalSettings.php - if you are using
 MediaWiki-Docker-Dev, this file can be found under `config/mediawiki/`.
 
-To use a custom configuration file, create a `local.json` file either in the root folder or
-the `configs` folder. For automated testing, an environment variable `API_TESTING_CONFIG_FILE` can
-be set to point to the correct configuration file.
+To use a custom configuration file, create a `config.local.json` file in the root folder.
+For automated testing, an environment variable `API_TESTING_CONFIG_FILE` can be set to point to the correct configuration file.
 
 The configuration file is evaluated in the following order:
 
 1) `API_TESTING_CONFIG_FILE` if set
-2) `local.json` if it exists
-3) `configs/local.json`  if it exists
-4) `configs/default.json`
+2) `config.local.json` if it exists
 
 If you have a custom setup, you need to provide the following configuration settings:
 
