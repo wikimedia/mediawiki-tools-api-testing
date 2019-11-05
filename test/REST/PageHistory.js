@@ -71,7 +71,7 @@ describe('Page History', () => {
         it('should get total number of edits', async () => {
             const res = await client.get(`/page/${title}/history/counts/edits`);
 
-            assert.deepEqual(res.body, { count: 9 });
+            assert.deepEqual(res.body, { count: 9, limit: false });
             assert.equal(res.status, 200);
         });
 
@@ -93,7 +93,7 @@ describe('Page History', () => {
         it('should get total number of anonymous edits', async () => {
             const res = await client.get(`/page/${title}/history/counts/anonymous`);
 
-            assert.deepEqual(res.body, { count: 2 });
+            assert.deepEqual(res.body, { count: 2, limit: false });
             assert.equal(res.status, 200);
         });
     });
@@ -102,7 +102,7 @@ describe('Page History', () => {
         it('should get total number of edits by bots', async () => {
             const res = await client.get(`/page/${title}/history/counts/bot`);
 
-            assert.deepEqual(res.body, { count: 4 });
+            assert.deepEqual(res.body, { count: 4, limit: false });
             assert.equal(res.status, 200);
         });
     });
@@ -111,7 +111,7 @@ describe('Page History', () => {
         it('should get total number of reverted edits', async () => {
             const res = await client.get(`/page/${title}/history/counts/reverted`);
 
-            assert.deepEqual(res.body, { count: 2 });
+            assert.deepEqual(res.body, { count: 2, limit: false });
             assert.equal(res.status, 200);
         });
     });
@@ -120,7 +120,7 @@ describe('Page History', () => {
         it('should get total number of unique editors', async () => {
             const res = await client.get(`/page/${title}/history/counts/editors`);
 
-            assert.deepEqual(res.body, { count: 4 });
+            assert.deepEqual(res.body, { count: 4, limit: false });
             assert.equal(res.status, 200);
         });
     });
