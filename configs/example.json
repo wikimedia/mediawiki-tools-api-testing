@@ -5,7 +5,7 @@
     "name": "Admin",
     "password": "dockerpass"
   },
-  "secret_key": "",
+  "secret_key": "a5dca55190e1c3927e098c317dd74e85c7eced36f959275114773b188fbabdbc",
   "extra_parameters": {
     "xdebug_session": "PHPSTORM"
   }
