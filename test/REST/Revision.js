@@ -3,7 +3,7 @@ const fixtures = require('../../fixtures');
 const api = require('../../actionapi');
 const REST = require('./REST');
 
-describe('Revision Compare', () => {
+describe('Revision', () => {
     const client = new REST();
     let mindy;
 
@@ -58,16 +58,17 @@ describe('Revision Compare', () => {
 
             assert.strictEqual(status, 200);
             assert.strictEqual(body.id, newrevid);
+            assert.strictEqual(body.minor, false);
             assert.deepEqual(body.page, { id: pageid, title: page });
             assert.nestedProperty(body, 'timestamp');
             assert.nestedPropertyVal(body, 'user.name', mindy.username);
             assert.strictEqual(body.comment, param_summary);
         });
-    });
 
-    it('should return 404 for revision that does not exist', async () => {
-        const { status } = await client.get('/revision/99999999/bare');
+        it('should return 404 for revision that does not exist', async () => {
+            const { status } = await client.get('/revision/99999999/bare');
 
-        assert.strictEqual(status, 404);
+            assert.strictEqual(status, 404);
+        });
     });
 });

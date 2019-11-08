@@ -18,7 +18,8 @@ describe('Page History', () => {
         const obj = {
             id: editInfo.newrevid,
             comment: editInfo.param_summary,
-            'user.name': editInfo.param_user
+            'user.name': editInfo.param_user,
+            minor: !!editInfo.param_minor
         };
 
         edits.all.unshift(obj);
@@ -58,9 +59,11 @@ describe('Page History', () => {
         rollback.newrevid = rollback.revid;
         rollback.param_summary = summary;
         rollback.param_user = mindy.username;
+        // Rollbacks are minor by default
+        rollback.param_minor = true;
 
         addEditInfo(rollback, edits.reverts);
-        addEditInfo(await bot.edit(title, { text: 'Counting 1 2 3 4', summary: 'bot edit 3' }), edits.bot);
+        addEditInfo(await bot.edit(title, { text: 'Counting 1 2 3 4', summary: 'bot edit 3', minor: true }), edits.bot);
         addEditInfo(await bot.edit(title, { text: 'Counting 1 2 3 4 555', summary: 'bot edit 4' }), edits.bot);
 
         // Undo last edit

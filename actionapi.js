@@ -427,9 +427,10 @@ class Client {
         assert.equal(result.edit.result, 'Success');
 
         // record parameters, for convenience
-        result.edit.param_text = effectiveParams.text;
-        result.edit.param_summary = effectiveParams.summary;
         result.edit.param_user = this.username;
+        Object.keys(effectiveParams).forEach((paramName) => {
+            result.edit[`param_${paramName}`] = effectiveParams[paramName];
+        });
 
         await runAllJobs();
         return result.edit;
