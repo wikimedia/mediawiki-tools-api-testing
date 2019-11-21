@@ -62,6 +62,9 @@ describe('Page History', () => {
         // Rollbacks are minor by default
         rollback.param_minor = true;
 
+        // Make sure we have something in cache in MW, so that we can verify later on it's updated
+        await client.get(`/page/${title}/history/counts/edits`);
+
         addEditInfo(rollback, edits.reverts);
         addEditInfo(await bot.edit(title, { text: 'Counting 1 2 3 4', summary: 'bot edit 3', minor: true }), edits.bot);
         addEditInfo(await bot.edit(title, { text: 'Counting 1 2 3 4 555', summary: 'bot edit 4' }), edits.bot);
@@ -72,15 +75,16 @@ describe('Page History', () => {
 
     describe('GET /page/{title}/history/counts/edits', () => {
         it('should get total number of edits', async () => {
-            const res = await client.get(`/page/${title}/history/counts/edits`);
-
-            assert.deepEqual(res.body, { count: 9, limit: false });
-            assert.equal(res.status, 200);
+            // we do 2 requests to verify the second value coming from cache is the same
+            for (let i = 0; i < 2; i++) {
+                const res = await client.get(`/page/${title}/history/counts/edits`);
+                assert.deepEqual(res.body, { count: 9, limit: false });
+                assert.equal(res.status, 200);
+            }
         });
 
         it('should return 400 for invalid parameter', async () => {
             const res = await client.get(`/page/${title}/history/counts/editts`);
-
             assert.equal(res.status, 400);
         });
 
@@ -89,6 +93,24 @@ describe('Page History', () => {
             const res = await client.get(`/page/${title2}/history/counts/edits`);
 
             assert.equal(res.status, 404);
+        });
+
+        it('should get total number of edits between revisions, normal order', async () => {
+            const fromRev = edits.all[1].id;
+            const toRev = edits.all[edits.all.length - 2].id;
+            const res = await client.get(`/page/${title}/history/counts/edits?from=${fromRev}&to=${toRev}`);
+
+            assert.strictEqual(res.status, 200);
+            assert.deepEqual(res.body, { count: 5, limit: false });
+        });
+
+        it('should get total number of edits between revisions, reverse order', async () => {
+            const fromRev = edits.all[1].id;
+            const toRev = edits.all[edits.all.length - 2].id;
+            const res = await client.get(`/page/${title}/history/counts/edits?from=${toRev}&to=${fromRev}`);
+
+            assert.strictEqual(res.status, 200);
+            assert.deepEqual(res.body, { count: 5, limit: false });
         });
     });
 
@@ -125,6 +147,24 @@ describe('Page History', () => {
 
             assert.deepEqual(res.body, { count: 4, limit: false });
             assert.equal(res.status, 200);
+        });
+
+        it('should get total number of unique editors between revisions, normal order', async () => {
+            const fromRev = edits.all[1].id;
+            const toRev = edits.all[edits.all.length - 2].id;
+            const res = await client.get(`/page/${title}/history/counts/editors?from=${fromRev}&to=${toRev}`);
+
+            assert.strictEqual(res.status, 200);
+            assert.deepEqual(res.body, { count: 3, limit: false });
+        });
+
+        it('should get total number of unique editors between revisions, reverse order', async () => {
+            const fromRev = edits.all[1].id;
+            const toRev = edits.all[edits.all.length - 2].id;
+            const res = await client.get(`/page/${title}/history/counts/editors?from=${toRev}&to=${fromRev}`);
+
+            assert.strictEqual(res.status, 200);
+            assert.deepEqual(res.body, { count: 3, limit: false });
         });
     });
 
