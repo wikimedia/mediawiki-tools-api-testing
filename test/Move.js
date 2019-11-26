@@ -1,19 +1,17 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('Move action', function () {
-    const userPage = api.title('MoveWith_');
-    const page1 = api.title('MoveWithout_');
+    const userPage = utils.title('MoveWith_');
+    const page1 = utils.title('MoveWithout_');
     const page2 = `User:${userPage}`;
-    const page1Subpage = api.title();
-    const page2Subpage = api.title();
+    const page1Subpage = utils.title();
+    const page2Subpage = utils.title();
     const page1Talk = `Talk:${page1}`;
     const page2Talk = `User_talk:${userPage}`;
     let mindy;
 
     before(async () => {
-        mindy = await fixtures.mindy();
+        mindy = await action.mindy();
 
         // creating page1, a subpage, and talkpage
         await mindy.edit(page1, { text: 'Move without redirect, subpage and talkpage' });
@@ -27,7 +25,7 @@ describe('Move action', function () {
     });
 
     it('should move a page without a redirect or its subpages and talkpages', async () => {
-        const newPage1 = `${page1}_${api.title()}`;
+        const newPage1 = `${page1}_${utils.title()}`;
         const { move } = await mindy.action('move',
             {
                 from: page1,
@@ -38,8 +36,8 @@ describe('Move action', function () {
             },
             'POST');
 
-        api.assert.sameTitle(move.from, page1);
-        api.assert.sameTitle(move.to, newPage1);
+        assert.sameTitle(move.from, page1);
+        assert.sameTitle(move.to, newPage1);
         assert.equal(move.reason, 'testing');
         assert.notExists(move.redirectcreated);
         assert.notExists(move.subpages);
@@ -54,7 +52,7 @@ describe('Move action', function () {
     });
 
     it('should move a page with a redirect and its subpages and talkpages', async () => {
-        const newTitle = api.title('Move_');
+        const newTitle = utils.title('Move_');
         const newPage2 = `User:${newTitle}`;
         const newPage2Talk = `User_talk:${newTitle}`;
         const { move } = await mindy.action('move',
@@ -68,12 +66,12 @@ describe('Move action', function () {
             },
             'POST');
 
-        api.assert.sameTitle(move.from, page2);
-        api.assert.sameTitle(move.to, newPage2);
-        api.assert.sameTitle(move.talkfrom, page2Talk);
-        api.assert.sameTitle(move.talkto, newPage2Talk);
-        api.assert.sameTitle(move.subpages[0].from, `${page2}/${page2Subpage}`);
-        api.assert.sameTitle(move.subpages[0].to, `${newPage2}/${page2Subpage}`);
+        assert.sameTitle(move.from, page2);
+        assert.sameTitle(move.to, newPage2);
+        assert.sameTitle(move.talkfrom, page2Talk);
+        assert.sameTitle(move.talkto, newPage2Talk);
+        assert.sameTitle(move.subpages[0].from, `${page2}/${page2Subpage}`);
+        assert.sameTitle(move.subpages[0].to, `${newPage2}/${page2Subpage}`);
         assert.equal(move.reason, 'testing');
         assert.exists(move.redirectcreated);
         assert.exists(move['subpages-talk']);
@@ -83,7 +81,7 @@ describe('Move action', function () {
 
         const redirectInfo = await mindy.action('query', { titles: page2, redirects: true });
         assert.isDefined(redirectInfo.query.redirects, page2);
-        api.assert.sameTitle(redirectInfo.query.redirects[0].from, page2);
-        api.assert.sameTitle(redirectInfo.query.redirects[0].to, newPage2);
+        assert.sameTitle(redirectInfo.query.redirects[0].from, page2);
+        assert.sameTitle(redirectInfo.query.redirects[0].to, newPage2);
     });
 });

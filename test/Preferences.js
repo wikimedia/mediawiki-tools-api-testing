@@ -1,11 +1,10 @@
-const { assert } = require('chai');
-const fixture = require('../fixtures');
+const { action, assert } = require('../index');
 
 describe("Changing a user's preferences", function () {
     let alice;
 
     before(async () => {
-        alice = await fixture.alice();
+        alice = await action.alice();
     });
 
     it('should get users default date settings', async () => {

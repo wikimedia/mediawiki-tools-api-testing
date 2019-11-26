@@ -1,9 +1,7 @@
-const { assert } = require('chai');
-const api = require('../actionapi');
-const fixtures = require('../fixtures');
+const { action, assert, utils } = require('../index');
 
 describe('Prefix Search', function () {
-    const prefix = `R${api.title(api.uniq())}`;
+    const prefix = `R${utils.title(utils.uniq())}`;
     const firstPage = `${prefix}_first`;
     const secondPage = `${prefix}_second`;
     const thirdPage = `${prefix}_third`;
@@ -11,7 +9,7 @@ describe('Prefix Search', function () {
     let alice;
 
     before(async () => {
-        alice = await fixtures.alice();
+        alice = await action.alice();
 
         const text = 'Random Text';
 
@@ -22,7 +20,7 @@ describe('Prefix Search', function () {
 
     it('should search for pages with the `${prefix}` prefix', async () => {
         const result = await alice.list('prefixsearch', { pssearch: `${prefix}`, pslimit: 100 });
-        const pageTitles = result.map((p)=>api.dbkey(p.title));
+        const pageTitles = result.map((p)=>utils.dbkey(p.title));
         assert.sameMembers(pageTitles, [firstPage, secondPage, thirdPage]);
     });
 });

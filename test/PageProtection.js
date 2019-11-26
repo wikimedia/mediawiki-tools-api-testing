@@ -1,18 +1,16 @@
-const { assert } = require('chai');
-const api = require('../actionapi');
-const fixtures = require('../fixtures');
+const { action, assert, utils } = require('../index');
 
 describe('Test page protection levels and effectiveness', function () {
     // users
     let admin, wikiUser;
-    const anonymousUser = new api.Client();
+    const anonymousUser = action.getAnon();
 
-    const protectedPage = api.title('Protected_');
-    const semiProtectedPage = api.title('SemiProtected_');
+    const protectedPage = utils.title('Protected_');
+    const semiProtectedPage = utils.title('SemiProtected_');
 
     before(async () => {
-        admin = await fixtures.mindy();
-        wikiUser = await fixtures.alice();
+        admin = await action.mindy();
+        wikiUser = await action.alice();
 
         // Get edit token for admin
         const adminEditToken = await admin.token();

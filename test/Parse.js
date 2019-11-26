@@ -1,18 +1,13 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('The parse action', function () {
-    // disable timeouts
-    this.timeout(0);
-
     let alice;
-    const pageTitle = api.title('Parsing_');
+    const pageTitle = utils.title('Parsing_');
     const edits = {};
 
     before(async () => {
         [alice] = await Promise.all([
-            fixtures.alice()
+            action.alice()
         ]);
 
         edits.pageCreation = await alice.edit(pageTitle, {
@@ -85,7 +80,7 @@ describe('The parse action', function () {
             );
         });
         it('supports {{REVISIONID}} and {{REVISIONUSER}} of a saved revision', async () => {
-            const anotherTitle = api.title('Parser_saved_magic_');
+            const anotherTitle = utils.title('Parser_saved_magic_');
 
             const anotherEdit = await alice.edit(anotherTitle, {
                 text: 'This is {{REVISIONID}} by {{REVISIONUSER}}'
@@ -103,7 +98,7 @@ describe('The parse action', function () {
     });
 
     describe('with templates', async () => {
-        const templateTitle = api.title('Template:Parsing_');
+        const templateTitle = utils.title('Template:Parsing_');
         const templateText = '{{{greeting|Hello}}} {{{1|world}}}!';
 
         before(async () => {

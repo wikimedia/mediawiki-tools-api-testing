@@ -1,14 +1,12 @@
-const { assert } = require('chai');
-const api = require('../actionapi');
-const fixture = require('../fixtures');
+const { assert, action, utils } = require('../index');
 
 describe('Testing default autopatrolling rights', function () {
-    const anonymousUser = new api.Client();
+    const anonymousUser = action.getAnon();
     let title, mindy;
 
     before(async () => {
-        title = await api.title('Autopatrol_');
-        mindy = await fixture.mindy();
+        title = await utils.title('Autopatrol_');
+        mindy = await action.mindy();
     });
 
     it('should edit page as a user in autopatrol group', async () => {

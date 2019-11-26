@@ -1,24 +1,21 @@
-const { assert } = require('chai');
-const fixtures = require('../../fixtures');
-const api = require('../../actionapi');
-const REST = require('./REST');
+const { action, assert, REST, utils } = require('../../index');
 
 describe('Search', () => {
-    const client = new REST();
-    const page = api.title('Search');
-    const searchTerm = `Content_${api.uniq()}`;
+    const client = new REST('rest.php/coredev/v0');
+    const page = utils.title('Search');
+    const searchTerm = `Content_${utils.uniq()}`;
     let alice;
     let mindy;
 
     before(async () => {
-        alice = await fixtures.alice();
-        mindy = await fixtures.mindy();
+        alice = await action.alice();
+        mindy = await action.mindy();
         await alice.edit(page, { text: searchTerm });
     });
 
     describe('GET /search/page?q={term}', () => {
         it('should return empty array when search term has no title or text matches', async () => {
-            const nonExistentTerm = api.uniq();
+            const nonExistentTerm = utils.uniq();
             const { body } = await client.get(`/search/page?q=${nonExistentTerm}`);
             const noResultsResponse = { pages: [] };
             assert.deepEqual(noResultsResponse, body);
@@ -53,7 +50,7 @@ describe('Search', () => {
         });
         it('should not return results when page with term has been deleted', async () => {
             const pageToDelete = 'Delete Page';
-            const deleteTerm = `Delete_${api.uniq()}`;
+            const deleteTerm = `Delete_${utils.uniq()}`;
             const { title } = await alice.edit(pageToDelete, { text: deleteTerm });
             await mindy.action('delete', {
                 title,

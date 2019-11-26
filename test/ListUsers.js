@@ -1,16 +1,15 @@
-const { assert } = require('chai');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('Listing Users', function () {
     let prefix;
 
     // users
-    let user1 = new api.Client();
-    let user2 = new api.Client();
-    let user3 = new api.Client();
+    let user1 = action.getAnon();
+    let user2 = action.getAnon();
+    let user3 = action.getAnon();
 
     before(async () => {
-        prefix = await api.title();
+        prefix = await utils.title();
         prefix = prefix.substring(0, 7);
         [user1, user2, user3] = await Promise.all([
             user1.account(`${prefix}1`),

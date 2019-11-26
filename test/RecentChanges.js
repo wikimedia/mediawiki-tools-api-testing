@@ -1,13 +1,11 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('Recent Changes', function () {
-    const title = api.title('Recent_Changes_');
+    const title = utils.title('Recent_Changes_');
     let alice;
 
     before(async () => {
-        alice = await fixtures.alice();
+        alice = await action.alice();
     });
 
     it('should create page and get new page recent changes', async () => {
@@ -15,7 +13,7 @@ describe('Recent Changes', function () {
         const results = await alice.list('recentchanges', { rctype: 'new', rctitle: title });
 
         assert.equal(results[0].type, 'new');
-        api.assert.sameTitle(results[0].title, title);
+        assert.sameTitle(results[0].title, title);
         assert.equal(results[0].pageid, edit.pageid);
         assert.equal(results[0].revid, edit.newrevid);
     });
@@ -25,7 +23,7 @@ describe('Recent Changes', function () {
         const results = await alice.list('recentchanges', { rctype: 'edit', rctitle: title });
 
         assert.equal(results[0].type, 'edit');
-        api.assert.sameTitle(results[0].title, title);
+        assert.sameTitle(results[0].title, title);
         assert.equal(results[0].pageid, rev1.pageid);
         assert.equal(results[0].revid, rev1.newrevid);
     });

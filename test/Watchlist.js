@@ -1,17 +1,15 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('The watchlist', function testWatch() {
     let alice;
-    const walter = new api.Client();
-    const title = api.title('Watch_');
+    const walter = action.getAnon();
+    const title = utils.title('Watch_');
     const edits = {};
 
     before(async () => {
         [, alice] = await Promise.all([
             walter.account('Walter_'),
-            fixtures.alice()
+            action.alice()
         ]);
     });
 
@@ -22,7 +20,7 @@ describe('The watchlist', function testWatch() {
             wlprop: 'ids|title|flags|user|comment|timestamp'
         });
 
-        api.assert.sameTitle(list[0].title, title);
+        assert.sameTitle(list[0].title, title);
         assert.equal(list[0].type, 'new');
         assert.equal(list[0].revid, edits.walter1.newrevid);
         assert.equal(list[0].user, edits.walter1.param_user);

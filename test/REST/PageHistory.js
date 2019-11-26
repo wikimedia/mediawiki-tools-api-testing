@@ -1,10 +1,7 @@
-const { assert } = require('chai');
-const fixtures = require('../../fixtures');
-const api = require('../../actionapi');
-const REST = require('./REST');
+const { action, assert, REST, utils } = require('../../index');
 
 describe('Page History', () => {
-    const title = api.title('PageHistory_');
+    const title = utils.title('PageHistory_');
     const client = new REST();
 
     const edits = {
@@ -30,10 +27,10 @@ describe('Page History', () => {
 
     before(async () => {
         // Users
-        const bot = await fixtures.robby();
-        const anon = new api.Client();
-        const alice = await fixtures.alice();
-        const mindy = await fixtures.mindy();
+        const bot = await action.robby();
+        const anon = action.getAnon();
+        const alice = await action.alice();
+        const mindy = await action.mindy();
 
         // Update anon's username
         const anonInfo = await anon.meta('userinfo');
@@ -89,7 +86,7 @@ describe('Page History', () => {
         });
 
         it('should return 404 for title that does not exist', async () => {
-            const title2 = api.title('Random_');
+            const title2 = utils.title('Random_');
             const res = await client.get(`/page/${title2}/history/counts/edits`);
 
             assert.equal(res.status, 404);
@@ -212,7 +209,7 @@ describe('Page History', () => {
         });
 
         it('should return 404 for title that does not exist', async () => {
-            const title2 = api.title('Random_');
+            const title2 = utils.title('Random_');
             const res = await client.get(`/page/${title2}/history`, { filter: 'bot' });
 
             assert.equal(res.status, 404);
@@ -270,8 +267,8 @@ describe('Page History', () => {
         });
 
         it('should return 404 for a revision that does not exist for a specified page', async () => {
-            const anon2 = new api.Client();
-            const title2 = api.title('AnotherPage');
+            const anon2 = action.getAnon();
+            const title2 = utils.title('AnotherPage');
             const edit = await anon2.edit(title2, { text: 'Hello world' });
             const res = await client.get(`/page/${title}/history`, { newer_than: edit.newrevid });
 

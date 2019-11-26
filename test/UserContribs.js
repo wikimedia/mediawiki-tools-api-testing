@@ -1,12 +1,11 @@
-const { assert } = require('chai');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('The usercontribs list query', function testUserContribsListQuery() {
-    const titleX = api.title('Contribs_');
-    const titleY = api.title('Talk:Contribs_');
+    const titleX = utils.title('Contribs_');
+    const titleY = utils.title('Talk:Contribs_');
 
-    const fiona = new api.Client();
-    const franky = new api.Client();
+    const fiona = action.getAnon();
+    const franky = action.getAnon();
 
     const edits = {};
 

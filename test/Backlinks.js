@@ -1,17 +1,15 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('Backlinks', function () {
-    const randomPage = api.title('Esther');
+    const randomPage = utils.title('Esther');
 
-    const linksToEsther1 = api.title('LinksToEsther1');
-    const linksToEsther2 = api.title('LinksToEsther2');
+    const linksToEsther1 = utils.title('LinksToEsther1');
+    const linksToEsther2 = utils.title('LinksToEsther2');
 
     let bob;
 
     before(async () => {
-        bob = await fixtures.bob();
+        bob = await action.bob();
 
         const randomPageText = `I'm guessing you came here from ${linksToEsther1} or ${linksToEsther2}.`;
 

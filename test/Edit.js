@@ -1,21 +1,19 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('The edit action', function testEditAction() {
     let alice;
 
     before(async () => {
-        alice = await fixtures.alice();
+        alice = await action.alice();
     });
 
-    const pageA = api.title('Edit_A_');
+    const pageA = utils.title('Edit_A_');
     const edits = {};
 
     const testEditAndLog = async (page, user) => {
         const edit = await user.edit(page, {
-            text: api.uniq(),
-            summary: api.uniq()
+            text: utils.uniq(),
+            summary: utils.uniq()
         });
 
         const rev1 = await user.getRevision(page);
@@ -44,8 +42,8 @@ describe('The edit action', function testEditAction() {
     });
 
     it('allows a page to be created and modified by an anonymous user', async () => {
-        const title = api.title();
-        const anon = new api.Client();
+        const title = utils.title();
+        const anon = action.getAnon();
         const { name } = await anon.meta('userinfo', {});
         anon.username = name;
 
@@ -83,7 +81,7 @@ describe('The edit action', function testEditAction() {
     });
 
     it('enforces the createonly and nocreate flags', async () => {
-        const pageB = api.title('Edit_B_');
+        const pageB = utils.title('Edit_B_');
 
         const error1 = await alice.actionError('edit', {
             title: pageB,
@@ -119,7 +117,7 @@ describe('The edit action', function testEditAction() {
     });
 
     it('allows bots to set the bot flag (or not)', async () => {
-        const robby = await fixtures.robby();
+        const robby = await action.robby();
 
         await robby.edit(pageA, {
             text: 'Bot content',
@@ -165,7 +163,7 @@ describe('The edit action', function testEditAction() {
     });
 
     it('does not allow anon users to set the minor flag', async () => {
-        const anon = new api.Client();
+        const anon = action.getAnon();
         await anon.edit(pageA, {
             text: 'Anon minor content',
             summary: 'anon minor change',

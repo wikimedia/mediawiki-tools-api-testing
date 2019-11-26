@@ -1,16 +1,14 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('The block/unblock action', function testBlockingAUser() {
-    let eve = new api.Client();
-    let pageTitle, mindy;
+    const pageTitle = utils.title('Block_');
+    let eve = action.getAnon();
+    let mindy;
 
     before(async () => {
-        [pageTitle, eve, mindy] = await Promise.all([
-            api.title('Block_'),
+        [eve, mindy] = await Promise.all([
             eve.account('Eve_'),
-            fixtures.mindy()
+            action.mindy()
         ]);
     });
 

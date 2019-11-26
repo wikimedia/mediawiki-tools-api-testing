@@ -1,19 +1,16 @@
-const { assert } = require('chai');
-const fixtures = require('../../fixtures');
-const api = require('../../actionapi');
-const REST = require('./REST');
+const { action, assert, REST, utils } = require('../../index');
 
 describe('Revision', () => {
     const client = new REST();
     let mindy;
 
     before(async () => {
-        mindy = await fixtures.mindy();
+        mindy = await action.mindy();
     });
 
     describe('GET /revision/{from}/compare/{to}', () => {
-        const page = api.title('RevisionCompare_');
-        const pageTwo = api.title('RevisionCompare_2');
+        const page = utils.title('RevisionCompare_');
+        const pageTwo = utils.title('RevisionCompare_2');
         const nonExistentRevId = 999;
         const validRevId = 1;
         const invalidRevId = '#';
@@ -49,7 +46,7 @@ describe('Revision', () => {
 
     describe('GET /revision/{id}/bare', async () => {
         it('should successfully get information about revision', async () => {
-            const page = api.title('Revision');
+            const page = utils.title('Revision');
             const { newrevid, pageid, param_summary } = await mindy.edit(page, {
                 text: 'Hello World',
                 summary: 'creating page'

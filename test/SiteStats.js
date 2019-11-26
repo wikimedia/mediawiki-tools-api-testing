@@ -1,6 +1,4 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe("Testing site statistics' edits value", function () {
     const siteStatsParams = {
@@ -12,7 +10,7 @@ describe("Testing site statistics' edits value", function () {
     let wikiuser;
 
     before(async () => {
-        wikiuser = await fixtures.alice();
+        wikiuser = await action.alice();
     });
 
     it('should GET site statistics', async () => {
@@ -22,7 +20,7 @@ describe("Testing site statistics' edits value", function () {
     });
 
     it('should edit a page', async () => {
-        const title = api.title('TestingSiteStats_');
+        const title = utils.title('TestingSiteStats_');
         await wikiuser.edit(title, { text: 'testing site stats ...' });
     });
 

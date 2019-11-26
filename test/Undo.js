@@ -1,13 +1,11 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('Testing undo functionality', function () {
-    const title = api.title('Undo_');
+    const title = utils.title('Undo_');
     let alice, revisionID;
 
     before(async () => {
-        alice = await fixtures.alice();
+        alice = await action.alice();
     });
 
     it('should create a page', async () => {

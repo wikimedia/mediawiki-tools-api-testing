@@ -1,14 +1,12 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('Diff Compare with Variables', function () {
     let wikiuser;
-    const title = api.title('DiffCompare');
+    const title = utils.title('DiffCompare');
     const variables = {};
 
     before(async () => {
-        wikiuser = await fixtures.alice();
+        wikiuser = await action.alice();
     });
 
     it('should edit a page', async () => {

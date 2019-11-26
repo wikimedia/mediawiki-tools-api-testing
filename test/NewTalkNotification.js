@@ -1,14 +1,12 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const { Client } = require('../actionapi');
+const { action, assert } = require('../index');
 
 describe('Testing a new talk page notification', function () {
-    let kam = new Client();
+    let kam = action.getAnon();
     let alice;
 
     before(async () => {
         [alice, kam] = await Promise.all([
-            fixtures.alice(),
+            action.alice(),
             kam.account('Kam_')
         ]);
     });

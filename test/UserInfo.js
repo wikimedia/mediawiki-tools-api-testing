@@ -1,9 +1,8 @@
-const { assert } = require('chai');
-const { title, Client } = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe("Changing a user's `editfont` option", function getUserOptions() {
-    let Rick = new Client();
-    const randomPage = title('random');
+    let Rick = action.getAnon();
+    const randomPage = utils.title('random');
     const text = 'Random text';
 
     before(async () => {

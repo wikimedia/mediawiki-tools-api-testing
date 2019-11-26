@@ -1,15 +1,13 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('The patrol action', function testEditPatrolling() {
     let alice, mindy, edit, rc;
-    const pageTitle = api.title('Patroll_');
+    const pageTitle = utils.title('Patroll_');
 
     before(async () => {
         [alice, mindy] = await Promise.all([
-            fixtures.alice(),
-            fixtures.mindy()
+            action.alice(),
+            action.mindy()
         ]);
     });
 

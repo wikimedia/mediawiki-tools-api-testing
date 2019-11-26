@@ -1,13 +1,11 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { assert, action, utils } = require('../index');
 
 describe('Categories', function testCategories() {
-    const pageX = api.title('CatTest_X_');
-    const pageY = api.title('Talk:CatTest_Y_');
+    const pageX = utils.title('CatTest_X_');
+    const pageY = utils.title('Talk:CatTest_Y_');
 
-    const catA = api.title('Cat_A_');
-    const catB = api.title('Cat_B_');
+    const catA = utils.title('Cat_A_');
+    const catB = utils.title('Cat_B_');
 
     const titleA = `Category:${catA}`;
     const titleB = `Category:${catB}`;
@@ -15,7 +13,7 @@ describe('Categories', function testCategories() {
     let alice;
 
     before(async () => {
-        alice = await fixtures.alice();
+        alice = await action.alice();
 
         await alice.edit(pageX, { text: `Foo [[${titleA}]]` });
         await alice.edit(pageY, { text: `Bar [[${titleA}]] [[${titleB}]]` });
@@ -27,7 +25,7 @@ describe('Categories', function testCategories() {
             page
         );
 
-        return result[page].categories.map((p)=>api.dbkey(p.title));
+        return result[page].categories.map((p)=>utils.dbkey(p.title));
     };
 
     const listMembers = async (cat, param = {}) => {
@@ -36,7 +34,7 @@ describe('Categories', function testCategories() {
             { cmtitle: cat, ...param }
         );
 
-        return result.map((p)=>api.dbkey(p.title));
+        return result.map((p)=>utils.dbkey(p.title));
     };
 
     it('can be added using wikitext syntax', async () => {

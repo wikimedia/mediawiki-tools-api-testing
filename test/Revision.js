@@ -1,14 +1,12 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('Testing Revisions', function () {
-    const title = api.title('Revision_');
+    const title = utils.title('Revision_');
     const revisions = {};
     let alice;
 
     before(async () => {
-        alice = await fixtures.alice();
+        alice = await action.alice();
 
         const create = await alice.edit(title, { text: 'Creating revision page ...', createonly: true, summary: 'create revision page' });
         revisions.create = create.newrevid;

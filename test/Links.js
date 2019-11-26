@@ -1,12 +1,10 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('Links', function testLinks() {
-    const titles = (list) => list.map((p)=>api.dbkey(p.title));
+    const titles = (list) => list.map((p)=>utils.dbkey(p.title));
 
-    const pageX = api.title('LinkTest_X_');
-    const pageY = api.title('LinkTest_Y_');
+    const pageX = utils.title('LinkTest_X_');
+    const pageY = utils.title('LinkTest_Y_');
     const imageY = `File:${pageY}`;
     const urlY = `http://example.com/${pageY}`;
 
@@ -15,7 +13,7 @@ describe('Links', function testLinks() {
     let alice;
 
     before(async () => {
-        alice = await fixtures.alice();
+        alice = await action.alice();
 
         const textX = `Mention a [[${pageY}|Page]], ` +
             `include an [[${imageY}]] and also link to [[:${imageY}]], ` +

@@ -1,20 +1,18 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('The rollback action', function testEditRollback() {
     let alice, bob, mindy;
 
     before(async () => {
         [alice, bob, mindy] = await Promise.all([
-            fixtures.alice(),
-            fixtures.bob(),
-            fixtures.mindy()
+            action.alice(),
+            action.bob(),
+            action.mindy()
         ]);
     });
 
     it('rolls back consecutive edits', async () => {
-        const title = api.title('Rollback_');
+        const title = utils.title('Rollback_');
         const edits = {};
 
         edits.alice1 = await alice.edit(title, { text: 'One', summary: 'first' });
@@ -30,7 +28,7 @@ describe('The rollback action', function testEditRollback() {
             token: await mindy.token('rollback')
         }, 'POST');
 
-        api.assert.sameTitle(result.rollback.title, title);
+        assert.sameTitle(result.rollback.title, title);
         assert.equal(result.rollback.old_revid, edits.bob5.newrevid);
         assert.equal(result.rollback.last_revid, edits.alice3.newrevid);
 
@@ -41,7 +39,7 @@ describe('The rollback action', function testEditRollback() {
     });
 
     it('doesn\'t roll back edits by another user', async () => {
-        const title = api.title('Rollback_');
+        const title = utils.title('Rollback_');
 
         await alice.edit(title, { text: 'One', summary: 'first' });
         await bob.edit(title, { text: 'Two', summary: 'second' });
@@ -58,7 +56,7 @@ describe('The rollback action', function testEditRollback() {
     });
 
     it('doesn\'t allow a regular user to roll back edits', async () => {
-        const title = api.title('Rollback_');
+        const title = utils.title('Rollback_');
 
         await alice.edit(title, { text: 'One', summary: 'first' });
         await bob.edit(title, { text: 'Two', summary: 'second' });

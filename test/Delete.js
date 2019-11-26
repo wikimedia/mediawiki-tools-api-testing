@@ -1,15 +1,13 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('The delete/undelete action', function testDeleteAction() {
-    const title = api.title('Delete_');
+    const title = utils.title('Delete_');
     let alice, mindy;
 
     before(async () => {
         [alice, mindy] = await Promise.all([
-            fixtures.alice(),
-            fixtures.mindy()
+            action.alice(),
+            action.mindy()
         ]);
     });
 
@@ -26,7 +24,7 @@ describe('The delete/undelete action', function testDeleteAction() {
             token: await mindy.token('csrf')
         }, 'POST');
 
-        api.assert.sameTitle(result.delete.title, title);
+        assert.sameTitle(result.delete.title, title);
 
         const error = await mindy.actionError('parse', { page: title });
         assert.equal(error.code, 'missingtitle');
@@ -48,7 +46,7 @@ describe('The delete/undelete action', function testDeleteAction() {
             token: await mindy.token('csrf')
         }, 'POST');
 
-        api.assert.sameTitle(result.undelete.title, title);
+        assert.sameTitle(result.undelete.title, title);
 
         const html = await alice.getHtml(title);
         assert.match(html, /Testing the testy test/);

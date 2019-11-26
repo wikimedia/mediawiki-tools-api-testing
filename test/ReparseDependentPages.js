@@ -1,16 +1,14 @@
-const { assert } = require('chai');
-const fixtures = require('../fixtures');
-const api = require('../actionapi');
+const { action, assert, utils } = require('../index');
 
 describe('Reparse of dependent pages', function () {
-    const title = api.title('Reparse_');
-    const template = api.title('Template');
-    const link = api.title('Link');
+    const title = utils.title('Reparse_');
+    const template = utils.title('Template');
+    const link = utils.title('Link');
 
     let alice;
 
     before(async () => {
-        alice = await fixtures.alice();
+        alice = await action.alice();
     });
 
     it('should create a page with missing template and link', async () => {

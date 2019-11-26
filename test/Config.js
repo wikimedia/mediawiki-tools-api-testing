@@ -1,4 +1,4 @@
-const { assert } = require('chai');
+const { assert } = require('../index');
 const fs = require('fs');
 const os = require('os');
 const fsp = fs.promises;
@@ -15,15 +15,19 @@ const createTestConfigs = async () => {
             throw error;
         }
     }
-    const files = [`${testConfigsDir}/quibble.json`, `${testConfigsDir}/example.json`, `${testRootDir}/config.local.json`];
+    const files = [
+        [`${testConfigsDir}/quibble.json`, `{ "file": "${testConfigsDir}/quibble.json" }`],
+        [`${testConfigsDir}/example.json`, `{ "file": "${testConfigsDir}/example.json" }`],
+        [`${testRootDir}/config.local.json`, `{ "file": "${testRootDir}/config.local.json" }`]
+    ];
     await fsp.mkdir(testConfigsDir);
-    const fileWritePromises = files.map((file) => fsp.writeFile(file, '{}'));
+    const fileWritePromises = files.map((fileInfo) => fsp.writeFile(fileInfo[0], fileInfo[1]));
     await Promise.all(fileWritePromises);
 };
 
 describe('Configuration', () => {
     let envVar;
-    const getConfig = require('../config');
+    const getConfig = require('../lib/config');
 
     before(async () => {
         // Save the env var for other tests
@@ -41,12 +45,12 @@ describe('Configuration', () => {
     describe(`Using ${testRootDir} as the configuration root folder`, () => {
         it('Use config.local.json file if API_TESTING_CONFIG_FILE does not exist', () => {
             delete process.env.API_TESTING_CONFIG_FILE;
-            assert.equal(getConfig(testRootDir), `${testRootDir}/config.local.json`);
+            assert.deepEqual(getConfig(testRootDir), { file: `${testRootDir}/config.local.json` });
         });
 
         it('Select full path config set in API_TESTING_CONFIG_FILE env variable over local config', () => {
             process.env.API_TESTING_CONFIG_FILE = `${testConfigsDir}/quibble.json`;
-            assert.equal(getConfig(testRootDir), `${testConfigsDir}/quibble.json`);
+            assert.deepEqual(getConfig(testRootDir), { file: `${testConfigsDir}/quibble.json` });
             delete process.env.API_TESTING_CONFIG_FILE;
         });
 
@@ -63,6 +67,15 @@ describe('Configuration', () => {
                     assert.throws(() => getConfig(testRootDir), Error, /Missing local config!/);
                 });
             });
+        });
+    });
+
+    describe('Using REST_BASE_URL for configuration', () => {
+        it('should return a json when REST_BASE_URL is set', () => {
+            process.env.REST_BASE_URL = 'http://localhost:8081/';
+
+            assert.deepEqual(getConfig(), { base_uri: process.env.REST_BASE_URL });
+            delete process.env.REST_BASE_URL;
         });
     });
 });
