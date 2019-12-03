@@ -7,5 +7,5 @@ cd $TEST_DIR
 
 export API_TESTING_CONFIG_FILE=quibble.json
 
-npm install --no-package-lock --only=dev
+npm install --no-package-lock
 npm test
