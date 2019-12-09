@@ -4,18 +4,19 @@ describe('Listing Users', function () {
     let prefix;
 
     // users
-    let user1 = action.getAnon();
-    let user2 = action.getAnon();
-    let user3 = action.getAnon();
+    const user1 = action.getAnon();
+    const user2 = action.getAnon();
+    const user3 = action.getAnon();
 
     before(async () => {
         prefix = await utils.title();
         prefix = prefix.substring(0, 7);
-        [user1, user2, user3] = await Promise.all([
-            user1.account(`${prefix}1`),
-            user2.account(`${prefix}2`),
-            user3.account(`${prefix}3`)
-        ]);
+
+        // NOTE: Because of T199393, the accounts have to be created sequentially.
+        // Doing so in parallel triggers a race condition that often results in a DBQueryError.
+        await user1.account(`${prefix}1`);
+        await user2.account(`${prefix}2`);
+        await user3.account(`${prefix}3`);
     });
 
     it('should get a list of registered users that begin with a given prefix', async () => {
