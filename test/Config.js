@@ -1,28 +1,41 @@
-const { assert } = require('../index');
+const { assert, utils } = require('../index');
 const fs = require('fs');
 const os = require('os');
 const fsp = fs.promises;
 
-const testRootDir = os.tmpdir();
+const testRootDir = `${os.tmpdir()}/${utils.uniq()}`;
 const testConfigsDir = `${testRootDir}/configs`;
+const testConfigFiles = [
+    [`${testConfigsDir}/quibble.json`, `{ "file": "${testConfigsDir}/quibble.json" }`],
+    [`${testConfigsDir}/example.json`, `{ "file": "${testConfigsDir}/example.json" }`],
+    [`${testRootDir}/config.local.json`, `{ "file": "${testRootDir}/config.local.json" }`]
+];
 
 // Setup our test configs in the temp directory
 const createTestConfigs = async () => {
-    try {
-        await fsp.rmdir(testConfigsDir, { recursive: true }); // cleanup
-    } catch (error) {
-        if (error.code !== 'ENOENT') {
-            throw error;
-        }
-    }
-    const files = [
-        [`${testConfigsDir}/quibble.json`, `{ "file": "${testConfigsDir}/quibble.json" }`],
-        [`${testConfigsDir}/example.json`, `{ "file": "${testConfigsDir}/example.json" }`],
-        [`${testRootDir}/config.local.json`, `{ "file": "${testRootDir}/config.local.json" }`]
-    ];
+    await fsp.mkdir(testRootDir);
     await fsp.mkdir(testConfigsDir);
-    const fileWritePromises = files.map((fileInfo) => fsp.writeFile(fileInfo[0], fileInfo[1]));
+    const fileWritePromises = testConfigFiles.map(
+        (fileInfo) => fsp.writeFile(fileInfo[0], fileInfo[1])
+    );
     await Promise.all(fileWritePromises);
+};
+
+// Setup our test configs in the temp directory
+const deleteTestConfigs = async () => {
+    // NOTE: rmdir does not support recursion in node 11 and earlier.
+    const filesInConfigDir = await fsp.readdir(testConfigsDir, { withFileTypes: true });
+    await Promise.all(filesInConfigDir.map((dirent) => fsp.unlink(`${testConfigsDir}/${dirent.name}`)));
+
+    const filesInRootDir = await fsp.readdir(testRootDir, { withFileTypes: true });
+    await Promise.all(filesInRootDir.map(
+        (dirent) => dirent.isDirectory() ?
+            fsp.rmdir(`${testRootDir}/${dirent.name}`) :
+            fsp.unlink(`${testRootDir}/${dirent.name}`)
+    ));
+
+    // await fsp.rmdir(testConfigsDir);
+    await fsp.rmdir(testRootDir);
 };
 
 describe('Configuration', () => {
@@ -36,7 +49,9 @@ describe('Configuration', () => {
         await createTestConfigs();
     });
 
-    after(() => {
+    after(async () => {
+        await deleteTestConfigs();
+
         if (envVar) {
             process.env.API_TESTING_CONFIG_FILE = envVar;
         }
