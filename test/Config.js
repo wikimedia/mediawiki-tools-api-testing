@@ -8,7 +8,7 @@ const testConfigsDir = `${testRootDir}/configs`;
 const testConfigFiles = [
     [`${testConfigsDir}/quibble.json`, `{ "file": "${testConfigsDir}/quibble.json" }`],
     [`${testConfigsDir}/example.json`, `{ "file": "${testConfigsDir}/example.json" }`],
-    [`${testRootDir}/config.local.json`, `{ "file": "${testRootDir}/config.local.json" }`]
+    [`${testRootDir}/.api-testing.config.json`, `{ "file": "${testRootDir}/.api-testing.config.json" }`]
 ];
 
 // Setup our test configs in the temp directory
@@ -58,9 +58,9 @@ describe('Configuration', () => {
     });
 
     describe(`Using ${testRootDir} as the configuration root folder`, () => {
-        it('Use config.local.json file if API_TESTING_CONFIG_FILE does not exist', () => {
+        it('Use .api-testing.config.json file if API_TESTING_CONFIG_FILE does not exist', () => {
             delete process.env.API_TESTING_CONFIG_FILE;
-            assert.deepEqual(getConfig(testRootDir), { file: `${testRootDir}/config.local.json` });
+            assert.deepEqual(getConfig(testRootDir), { file: `${testRootDir}/.api-testing.config.json` });
         });
 
         it('Select full path config set in API_TESTING_CONFIG_FILE env variable over local config', () => {
@@ -75,10 +75,10 @@ describe('Configuration', () => {
             delete process.env.API_TESTING_CONFIG_FILE;
         });
 
-        describe('Renaming required root folder config "config.local.json"', () => {
-            it('Throws exception if "config.local.json" doesnt exist and API_TESTING_CONFIG_FILE is not set', () => {
+        describe('Renaming required root folder config ".api-testing.config.json"', () => {
+            it('Throws exception if ".api-testing.config.json" doesnt exist and API_TESTING_CONFIG_FILE is not set', () => {
                 delete process.env.API_TESTING_CONFIG_FILE;
-                fs.rename(`${testRootDir}/config.local.json`, `${testRootDir}/wrong.json`, (err) => {
+                fs.rename(`${testRootDir}/.api-testing.config.json`, `${testRootDir}/wrong.json`, (err) => {
                     assert.throws(() => getConfig(testRootDir), Error, /Missing local config!/);
                 });
             });

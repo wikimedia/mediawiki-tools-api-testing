@@ -1,8 +1,9 @@
-# MediaWiki API integration tests
+# API-Testing
 
-This repo contains end-to-end integration tests for MediaWiki's [Action API](https://www.mediawiki.org/wiki/API:Main_page) and [REST API](https://www.mediawiki.org/wiki/API:REST_API).
-The tests are implemented in JavaScript for node.js, using the
-[supertest](https://www.npmjs.com/package/supertest)
+API-Testing is a library for end-to-end integration tests for MediaWiki's
+[Action API](https://www.mediawiki.org/wiki/API:Main_page) and [REST API](https://www.mediawiki.org/wiki/API:REST_API).
+You can run tests locally by installing the NPM package and configuring it to access a test wiki or a service. The
+library is implemented in JavaScript for node.js, using the [supertest](https://www.npmjs.com/package/supertest)
 HTTP testing library, the [Chai](https://www.npmjs.com/package/chai) assertion
 library, and the [Mocha](https://www.npmjs.com/package/mocha) testing framework.
 
