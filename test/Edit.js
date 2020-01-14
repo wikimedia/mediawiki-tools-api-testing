@@ -2,9 +2,11 @@ const { action, assert, utils } = require('../index');
 
 describe('The edit action', function testEditAction() {
     let alice;
+    let Clark = action.getAnon();
 
     before(async () => {
         alice = await action.alice();
+        Clark = await Clark.account('Clark_');
     });
 
     const pageA = utils.title('Edit_A_');
@@ -175,5 +177,63 @@ describe('The edit action', function testEditAction() {
 
         const rc1 = await alice.getChangeEntry({ rctitle: pageA });
         assert.notExists(rc1.minor);
+    });
+
+    it('allows a user to create a page and add sections', async () => {
+        const pageB = utils.title('Page_B');
+        const editText = 'Some random text';
+        const sectionText1 = 'Some text for the first section';
+        const sectionText2 = 'Some text for the second section';
+
+        await Clark.edit(pageB, {
+            text: editText
+        });
+
+        await Clark.edit(pageB, {
+            section: 'new',
+            sectiontitle: 'First',
+            text: sectionText1
+        });
+
+        await Clark.edit(pageB, {
+            section: 'new',
+            sectiontitle: 'Second',
+            text: sectionText2
+        });
+
+        const firstModification = await Clark.getHtml(pageB);
+        assert.include(firstModification, editText);
+        assert.include(firstModification, sectionText1);
+        assert.include(firstModification, sectionText2);
+
+        await Clark.edit(pageB, {
+            section: 0,
+            text: `${editText} some text`
+        });
+
+        const secondModification = await Clark.getHtml(pageB);
+        assert.include(secondModification, `${editText} some text`);
+        assert.include(secondModification, sectionText1);
+        assert.include(secondModification, sectionText2);
+
+        await Clark.edit(pageB, {
+            section: 1,
+            text: `== First ==\n${sectionText1} some text`
+        });
+
+        const thirdModification = await Clark.getHtml(pageB);
+        assert.include(thirdModification, `${editText} some text`);
+        assert.include(thirdModification, `${sectionText1} some text`);
+        assert.include(thirdModification, sectionText2);
+
+        await Clark.edit(pageB, {
+            section: 1,
+            text: ''
+        });
+
+        const fourthModification = await Clark.getHtml(pageB);
+        assert.include(fourthModification, `${editText} some text`);
+        assert.notInclude(fourthModification, '== First ==');
+        assert.include(fourthModification, sectionText2);
     });
 });
