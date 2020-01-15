@@ -236,4 +236,24 @@ describe('The edit action', function testEditAction() {
         assert.notInclude(fourthModification, '== First ==');
         assert.include(fourthModification, sectionText2);
     });
+
+    it('allows a user to append text to the end of the page and prepend text to the beginning of the page', async () => {
+        const page = utils.title('Page_');
+        const text = 'text';
+        const bottom = 'bottom';
+        const top = 'top';
+
+        await Clark.edit(page, {
+            text: text
+        });
+        await Clark.edit(page, {
+            appendtext: bottom
+        });
+        await Clark.edit(page, {
+            prependtext: top
+        });
+
+        const pageContent = await Clark.getHtml(page);
+        assert.include(pageContent, `${top}${text}${bottom}`);
+    });
 });
