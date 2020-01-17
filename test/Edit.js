@@ -303,4 +303,92 @@ describe('The edit action', function testEditAction() {
         assert.notInclude(pageContent, text);
         assert.include(pageContent, top + bottom);
     });
+
+    it('should throw an error when a wrong value is passed to md5', async () => {
+        const page = utils.title('Page');
+        const error = await Clark.actionError('edit', {
+            title: page,
+            token: await Clark.token('csrf'),
+            text: 'Some Text',
+            summary: 'Bad md5',
+            md5: 'sometext'
+        }, 'POST');
+        assert.equal(error.code, 'badmd5');
+    });
+
+    it('should edit the page when the correct md5 hash of the text parameter is passed to it', async () => {
+        const page = utils.title('Page_');
+        const text = 'An edit with the correct md5';
+        await Clark.edit(page, {
+            text: text,
+            md5: 'd19dc30a12f31ec3684743bc010ef148'
+        });
+
+        const pageContent = await Clark.getHtml(page);
+        assert.include(pageContent, text);
+    });
+
+    it('should edit the page when the correct md5 hash of the appendtext is passed to the md5 parameter as the appendtext parameter should override the text parameter', async () => {
+        const page = utils.title('Page_');
+        const text = 'An edit containing text and appendtext parameters with the correct md5';
+        const bottom = 'An edit just for the bottom';
+        await Clark.edit(page, {
+            text: text,
+            appendtext: bottom,
+            md5: '83edcea6d422ba921d0442ca29abce1d'
+        });
+
+        const pageContent = await Clark.getHtml(page);
+        assert.notInclude(pageContent, text);
+        assert.include(pageContent, bottom);
+    });
+
+    it('should edit the page when the correct md5 hash of the prependtext is passed to the md5 parameter as the prependtext parameter should override the text parameter', async () => {
+        const page = utils.title('Page_');
+        const text = 'An edit containing text and appendtext parameters with the correct md5';
+        const top = 'An edit just for the top';
+        await Clark.edit(page, {
+            text: text,
+            prependtext: top,
+            md5: '0f5f08a431409bc0c504c090fe4f2f11'
+        });
+
+        const pageContent = await Clark.getHtml(page);
+        assert.notInclude(pageContent, text);
+        assert.include(pageContent, top);
+    });
+
+    it('should edit the page when the correct md5 hash of the prependtext and appendtext concatenated is passed to the md5 parameter', async () => {
+        const page = utils.title('Page_');
+        const text = 'An edit containing text and appendtext parameters with the correct md5';
+        const top = 'An edit just for the top';
+        const bottom = 'An edit just for the bottom';
+        await Clark.edit(page, {
+            text: text,
+            prependtext: top,
+            appendtext: bottom,
+            md5: 'b1df72139fc1202b6d817d9b1459e2d5'
+        });
+
+        const pageContent = await Clark.getHtml(page);
+        assert.notInclude(pageContent, text);
+        assert.include(pageContent, top + bottom);
+    });
+
+    it('should throw an error when the wrong md5 hash of the prependtext and appendtext concatenated is passed to the md5 parameter', async () => {
+        const page = utils.title('Page_');
+        const text = 'An edit containing text and appendtext parameters with the correct md5';
+        const top = 'An edit just for the top';
+        const bottom = 'An edit just for the bottom';
+        const error = await Clark.actionError('edit', {
+            title: page,
+            token: await Clark.token('csrf'),
+            text: text,
+            prependtext: top,
+            appendtext: bottom,
+            summary: 'Bad md5',
+            md5: 'badmd5139fc1202b6d817d9b1459e2d5'
+        }, 'POST');
+        assert.equal(error.code, 'badmd5');
+    });
 });
