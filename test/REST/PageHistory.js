@@ -2,7 +2,14 @@ const { action, assert, REST, utils } = require('../../index');
 
 describe('Page History', () => {
     const title = utils.title('PageHistory_');
+    const titleToDelete = utils.title('PageHistoryDelete_');
     const client = new REST();
+
+    let mindy;
+    let bot;
+    let anon;
+    let alice;
+    let root;
 
     const edits = {
         all: [],
@@ -10,6 +17,12 @@ describe('Page History', () => {
         bot: [],
         reverts: []
     };
+
+    async function setupDeletedPage() {
+        const editOne = await bot.edit(titleToDelete, { text: 'Delete Me 1', summary: 'edit 1' });
+        const editTwo = await mindy.edit(titleToDelete, { text: 'Counting 1', summary: 'edit 2' });
+        return { editOne, editTwo };
+    }
 
     const addEditInfo = (editInfo, editBucket) => {
         const obj = {
@@ -27,10 +40,12 @@ describe('Page History', () => {
 
     before(async () => {
         // Users
-        const bot = await action.robby();
-        const anon = action.getAnon();
-        const alice = await action.alice();
-        const mindy = await action.mindy();
+        bot = await action.robby();
+        anon = action.getAnon();
+        alice = await action.alice();
+        mindy = await action.mindy();
+        root = await action.root();
+        await root.addGroups(mindy.username, [ 'suppress' ]);
 
         // Update anon's username
         const anonInfo = await anon.meta('userinfo');
@@ -61,6 +76,7 @@ describe('Page History', () => {
 
         // Make sure we have something in cache in MW, so that we can verify later on it's updated
         await client.get(`/page/${title}/history/counts/edits`);
+        await utils.sleep();
 
         addEditInfo(rollback, edits.reverts);
         addEditInfo(await bot.edit(title, { text: 'Counting 1 2 3 4', summary: 'bot edit 3', minor: true }), edits.bot);
@@ -68,10 +84,80 @@ describe('Page History', () => {
 
         // Undo last edit
         addEditInfo(await mindy.edit(title, { undo: edits.all[0].id }), edits.reverts);
+
+    });
+
+    describe('Revision deletion and un-deletion', async () => {
+        let edits;
+        it('Should get total number of edits and editors when edits are hidden and shown', async () => {
+            edits = await setupDeletedPage();
+            const { editOne } = edits;
+
+            // Populate cache
+            const { body, status } = await client.get(`/page/${titleToDelete}/history/counts/edits`);
+            assert.equal(status, 200);
+            assert.deepEqual(body, { count: 2, limit: false }, 'Initial edit count of 2 ');
+
+            // Hack: If edits are not > 1 sec apart the latest timestamp will not not be detected.
+            // Handler uses logging table timestamps to determine last modified time,
+            // which are MW timestamps down to the sec, not ms.
+            await utils.sleep();
+
+            // Hide revision
+            await mindy.action('revisiondelete',
+                {
+                    type: 'revision',
+                    token: await mindy.token(),
+                    target: titleToDelete,
+                    hide: 'content|comment|user',
+                    ids: editOne.newrevid
+                },
+                'POST'
+            );
+
+            const revHideEdits = await client.get(`/page/${titleToDelete}/history/counts/edits`);
+            assert.equal(revHideEdits.status, 200);
+            assert.deepEqual(revHideEdits.body, { count: 1, limit: false }, 'Edit count of 1 after hiding a revision');
+
+            const revHideEditors = await client.get(`/page/${titleToDelete}/history/counts/editors`);
+            assert.equal(revHideEditors.status, 200);
+            assert.deepEqual(revHideEditors.body, { count: 1, limit: false }, 'Editor count of 1 after hiding a revision');
+
+            await utils.sleep();
+
+            // Show revision
+            await mindy.action('revisiondelete',
+                {
+                    type: 'revision',
+                    token: await mindy.token(),
+                    target: titleToDelete,
+                    show: 'content|comment|user',
+                    ids: editOne.newrevid
+                },
+                'POST'
+            );
+
+            const revShowEdits = await client.get(`/page/${titleToDelete}/history/counts/edits`);
+            assert.equal(revShowEdits.status, 200);
+            assert.deepEqual(revShowEdits.body, { count: 2, limit: false }, 'Edit count of 2 after un-hiding the hidden revision');
+
+            const revShowEditors = await client.get(`/page/${titleToDelete}/history/counts/editors`);
+            assert.deepEqual(revShowEditors.body, { count: 2, limit: false }, 'Editor count of 2 after un-hiding the hidden revision');
+            assert.equal(revShowEditors.status, 200);
+        });
+
+        it('Should update last-modified header after revision deletion', async () => {
+            const { headers } = await client.get(`/page/${titleToDelete}/history/counts/edits`);
+            const { editTwo } = edits;
+            assert.containsAllKeys(headers, [ 'last-modified' ]);
+            const lastTouchedTS = Date.parse(editTwo.newtimestamp);
+            const headerLastModTS = Date.parse(headers['last-modified']);
+            assert.isAbove(headerLastModTS, lastTouchedTS);
+        });
     });
 
     describe('GET /page/{title}/history/counts/edits', () => {
-        it('should get total number of edits', async () => {
+        it('Should get total number of edits', async () => {
             // we do 2 requests to verify the second value coming from cache is the same
             for (let i = 0; i < 2; i++) {
                 const res = await client.get(`/page/${title}/history/counts/edits`);
@@ -80,19 +166,19 @@ describe('Page History', () => {
             }
         });
 
-        it('should return 400 for invalid parameter', async () => {
+        it('Should return 400 for invalid parameter', async () => {
             const res = await client.get(`/page/${title}/history/counts/editts`);
             assert.equal(res.status, 400);
         });
 
-        it('should return 404 for title that does not exist', async () => {
+        it('Should return 404 for title that does not exist', async () => {
             const title2 = utils.title('Random_');
             const res = await client.get(`/page/${title2}/history/counts/edits`);
 
             assert.equal(res.status, 404);
         });
 
-        it('should get total number of edits between revisions, normal order', async () => {
+        it('Should get total number of edits between revisions, normal order', async () => {
             const fromRev = edits.all[1].id;
             const toRev = edits.all[edits.all.length - 2].id;
             const res = await client.get(`/page/${title}/history/counts/edits?from=${fromRev}&to=${toRev}`);
@@ -101,7 +187,7 @@ describe('Page History', () => {
             assert.deepEqual(res.body, { count: 5, limit: false });
         });
 
-        it('should get total number of edits between revisions, reverse order', async () => {
+        it('Should get total number of edits between revisions, reverse order', async () => {
             const fromRev = edits.all[1].id;
             const toRev = edits.all[edits.all.length - 2].id;
             const res = await client.get(`/page/${title}/history/counts/edits?from=${toRev}&to=${fromRev}`);
@@ -109,10 +195,16 @@ describe('Page History', () => {
             assert.strictEqual(res.status, 200);
             assert.deepEqual(res.body, { count: 5, limit: false });
         });
+
+        it('Should return 404 for deleted page', async () => {
+            await mindy.action('delete', { title: titleToDelete, token: await mindy.token() }, 'POST');
+            const { status: editsStatus } = await client.get(`/page/${titleToDelete}/history/counts/edits`);
+            assert.equal(editsStatus, 404);
+        });
     });
 
     describe('GET /page/{title}/history/counts/anonymous', () => {
-        it('should get total number of anonymous edits', async () => {
+        it('Should get total number of anonymous edits', async () => {
             const res = await client.get(`/page/${title}/history/counts/anonymous`);
 
             assert.deepEqual(res.body, { count: 2, limit: false });
@@ -121,7 +213,7 @@ describe('Page History', () => {
     });
 
     describe('GET /page/{title}/history/counts/bot', () => {
-        it('should get total number of edits by bots', async () => {
+        it('Should get total number of edits by bots', async () => {
             const res = await client.get(`/page/${title}/history/counts/bot`);
 
             assert.deepEqual(res.body, { count: 4, limit: false });
@@ -130,7 +222,7 @@ describe('Page History', () => {
     });
 
     describe('GET /page/{title}/history/counts/reverted', () => {
-        it('should get total number of reverted edits', async () => {
+        it('Should get total number of reverted edits', async () => {
             const res = await client.get(`/page/${title}/history/counts/reverted`);
 
             assert.deepEqual(res.body, { count: 2, limit: false });
@@ -139,14 +231,19 @@ describe('Page History', () => {
     });
 
     describe('GET /page/{title}/history/counts/editors', () => {
-        it('should get total number of unique editors', async () => {
+        it('Should return 404 for deleted page', async () => {
+            const { status: editorsStatus } = await client.get(`/page/${titleToDelete}/history/counts/editors`);
+            assert.equal(editorsStatus, 404);
+        });
+
+        it('Should get total number of unique editors', async () => {
             const res = await client.get(`/page/${title}/history/counts/editors`);
 
             assert.deepEqual(res.body, { count: 4, limit: false });
             assert.equal(res.status, 200);
         });
 
-        it('should get total number of unique editors between revisions, normal order', async () => {
+        it('Should get total number of unique editors between revisions, normal order', async () => {
             const fromRev = edits.all[1].id;
             const toRev = edits.all[edits.all.length - 2].id;
             const res = await client.get(`/page/${title}/history/counts/editors?from=${fromRev}&to=${toRev}`);
@@ -155,7 +252,7 @@ describe('Page History', () => {
             assert.deepEqual(res.body, { count: 3, limit: false });
         });
 
-        it('should get total number of unique editors between revisions, reverse order', async () => {
+        it('Should get total number of unique editors between revisions, reverse order', async () => {
             const fromRev = edits.all[1].id;
             const toRev = edits.all[edits.all.length - 2].id;
             const res = await client.get(`/page/${title}/history/counts/editors?from=${toRev}&to=${fromRev}`);
@@ -166,7 +263,7 @@ describe('Page History', () => {
     });
 
     describe('GET page/{title}/history?filter={tag}', () => {
-        it('should get all revisions', async () => {
+        it('Should get all revisions', async () => {
             const res = await client.get(`/page/${title}/history`);
 
             assert.lengthOf(res.body.revisions, edits.all.length);
@@ -175,7 +272,7 @@ describe('Page History', () => {
             assert.equal(res.status, 200);
         });
 
-        it('should get revisions by anonymous users', async () => {
+        it('Should get revisions by anonymous users', async () => {
             const res = await client.get(`/page/${title}/history`, { filter: 'anonymous' });
 
             assert.lengthOf(res.body.revisions, edits.anon.length);
@@ -184,7 +281,7 @@ describe('Page History', () => {
             assert.equal(res.status, 200);
         });
 
-        it('should get revisions by bots', async () => {
+        it('Should get revisions by bots', async () => {
             const res = await client.get(`/page/${title}/history`, { filter: 'bot' });
 
             assert.lengthOf(res.body.revisions, edits.bot.length);
@@ -193,7 +290,7 @@ describe('Page History', () => {
             assert.equal(res.status, 200);
         });
 
-        it('should get reverted revisions', async () => {
+        it('Should get reverted revisions', async () => {
             const res = await client.get(`/page/${title}/history`, { filter: 'reverted' });
 
             assert.lengthOf(res.body.revisions, edits.reverts.length);
@@ -202,13 +299,13 @@ describe('Page History', () => {
             assert.equal(res.status, 200);
         });
 
-        it('should return 400 for invalid filter parameter', async () => {
+        it('Should return 400 for invalid filter parameter', async () => {
             const res = await client.get(`/page/${title}/history`, { filter: 'anon' });
 
             assert.equal(res.status, 400);
         });
 
-        it('should return 404 for title that does not exist', async () => {
+        it('Should return 404 for title that does not exist', async () => {
             const title2 = utils.title('Random_');
             const res = await client.get(`/page/${title2}/history`, { filter: 'bot' });
 
@@ -217,7 +314,7 @@ describe('Page History', () => {
     });
 
     describe('GET /page/{title}/history?{older_than|newer_than={id}}', () => {
-        it('should get revisions newer than specified id for a page', async () => {
+        it('Should get revisions newer than specified id for a page', async () => {
             const { id } = edits.all[3];
             const expected = edits.all.slice(0, 3);
             const res = await client.get(`/page/${title}/history`, { newer_than: id });
@@ -229,7 +326,7 @@ describe('Page History', () => {
             assert.equal(res.status, 200);
         });
 
-        it('should get revisions older than specified id for a page', async () => {
+        it('Should get revisions older than specified id for a page', async () => {
             const { id } = edits.all[3];
             const expected = edits.all.slice(4);
             const res = await client.get(`/page/${title}/history`, { older_than: id });
@@ -241,7 +338,7 @@ describe('Page History', () => {
             assert.equal(res.status, 200);
         });
 
-        it('should get revisions using both filter and newer_than|older_than parameters', async () => {
+        it('Should get revisions using both filter and newer_than|older_than parameters', async () => {
             const { id } = edits.all[3];
             const res = await client.get(`/page/${title}/history`, { newer_than: id, filter: 'bot' });
 
@@ -252,13 +349,13 @@ describe('Page History', () => {
             assert.equal(res.status, 200);
         });
 
-        it('should return 400 for revision id less than 0 ', async () => {
+        it('Should return 400 for revision id less than 0 ', async () => {
             const res = await client.get(`/page/${title}/history`, { newer_than: -1 });
 
             assert.equal(res.status, 400);
         });
 
-        it('should return 400 when using both newer_than and older_than', async () => {
+        it('Should return 400 when using both newer_than and older_than', async () => {
             const id1 = edits.all[8].id;
             const id2 = edits.all[2].id;
             const res = await client.get(`/page/${title}/history`, { newer_than: id1, older_than: id2 });
@@ -266,7 +363,7 @@ describe('Page History', () => {
             assert.equal(res.status, 400);
         });
 
-        it('should return 404 for a revision that does not exist for a specified page', async () => {
+        it('Should return 404 for a revision that does not exist for a specified page', async () => {
             const anon2 = action.getAnon();
             const title2 = utils.title('AnotherPage');
             const edit = await anon2.edit(title2, { text: 'Hello world' });
