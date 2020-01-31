@@ -257,51 +257,36 @@ describe('The edit action', function testEditAction() {
         assert.include(pageContent, `${top}${text}${bottom}`);
     });
 
-    it('should override the text parameter with the appendtext parameter', async () => {
+    it('should allow a user make edits on a page passing the timestamp from the previous edit on the same page the basetimetamp', async () => {
         const page = utils.title('Page_');
-        const text = 'A text that is to be overriden';
-        const bottom = 'This text should override the text parameter';
-
-        await Clark.edit(page, {
-            text: text,
-            appendtext: bottom
+        const editContent = 'An edit from Clark';
+        const rev1 = await alice.edit(page, {
+            text: 'An edit from Alice'
         });
-
+        await Clark.edit(page, {
+            text: editContent,
+            basetimestamp: rev1.timestamp
+        });
         const pageContent = await Clark.getHtml(page);
-        assert.notInclude(pageContent, text);
-        assert.include(pageContent, bottom);
+        assert.include(pageContent, editContent);
     });
 
-    it('should override the text parameter with the prependtext parameter', async () => {
+    it('should throw an error when a user tries to set the basetimestamp to a date/time different from the timestamp of the previous edit', async () => {
         const page = utils.title('Page_');
-        const text = 'A text that is to be overriden';
-        const top = 'This text should override the text parameter';
-
-        await Clark.edit(page, {
-            text: text,
-            prependtext: top
+        const rev1 = await alice.edit(page, {
+            text: 'An edit from Alice'
         });
-
-        const pageContent = await Clark.getHtml(page);
-        assert.notInclude(pageContent, text);
-        assert.include(pageContent, top);
-    });
-
-    it('should override the text parameter with the appendtext and prependtext parameters', async () => {
-        const page = utils.title('Page_');
-        const text = 'A text that is to be overriden';
-        const top = 'This text should override the text parameter on top';
-        const bottom = 'This text should override the text parameter at the end';
-
         await Clark.edit(page, {
-            text: text,
-            prependtext: top,
-            appendtext: bottom
+            text: 'An edit from Clark',
+            basetimestamp: rev1.timestamp
         });
-
-        const pageContent = await Clark.getHtml(page);
-        assert.notInclude(pageContent, text);
-        assert.include(pageContent, top + bottom);
+        const error = await alice.actionError('edit', {
+            title: page,
+            text: 'Another edit by Alice',
+            token: await alice.token('csrf'),
+            basetimestamp: '2001-01-01T00:00:00Z'
+        }, 'POST');
+        assert.equal(error.code, 'editconflict');
     });
 
     it('should throw an error when a wrong value is passed to md5', async () => {
