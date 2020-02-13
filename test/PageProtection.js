@@ -8,6 +8,28 @@ describe('Test page protection levels and effectiveness', function () {
     const protectedPage = utils.title('Protected_');
     const semiProtectedPage = utils.title('SemiProtected_');
 
+    const testForExpiry = async (expiry) => {
+        const adminEditToken = await admin.token();
+        const token = await wikiUser.token();
+        const title = utils.title('TestExpiry_');
+        await admin.edit(title, {
+            text: 'Test for Expiry'
+        });
+        await admin.action('protect', {
+            title,
+            token: adminEditToken,
+            expiry: expiry,
+            protections: 'edit=sysop'
+        }, 'POST');
+
+        const editPage = await wikiUser.actionError('edit', {
+            title,
+            token,
+            text: 'wikiUser editing protected page'
+        }, 'POST');
+        return editPage.code;
+    };
+
     before(async () => {
         admin = await action.mindy();
         wikiUser = await action.alice();
@@ -73,5 +95,56 @@ describe('Test page protection levels and effectiveness', function () {
         }, 'POST');
 
         assert.equal(editPage.code, 'protectedpage');
+    });
+
+    it('should apply protections to a page for an indefinite duration', async () => {
+        const errorCode = await testForExpiry('indefinite');
+        assert.equal(errorCode, 'protectedpage');
+    });
+
+    it('should apply protections to a page for an infinite duration', async () => {
+        const errorCode = await testForExpiry('infinite');
+        assert.equal(errorCode, 'protectedpage');
+    });
+
+    it('should apply protections to a page for an infinity duration', async () => {
+        const errorCode = await testForExpiry('infinity');
+        assert.equal(errorCode, 'protectedpage');
+    });
+
+    it('should apply protections to a page for some centuries to come', async () => {
+        const errorCode = await testForExpiry('9999-01-01T00:00:00Z');
+        assert.equal(errorCode, 'protectedpage');
+    });
+
+    it('protect a page for an infinite time to allow only autoconfirmed users to edit it and only sysops to move it', async () => {
+        const adminEditToken = await admin.token();
+        const token = await anonymousUser.token();
+        const title = utils.title('TestExpiry_');
+        await admin.edit(title, {
+            text: 'Test for Expiry'
+        });
+        await admin.action('protect', {
+            title,
+            token: adminEditToken,
+            expiry: 'infinite',
+            protections: 'edit=autoconfirmed|move=sysop'
+        }, 'POST');
+
+        const editPage = await anonymousUser.actionError('edit', {
+            title,
+            token,
+            text: 'wikiUser editing protected page'
+        }, 'POST');
+
+        const movePage = await anonymousUser.actionError('move', {
+            from: title,
+            to: 'Page with new Title',
+            token,
+            reason: 'to test that the page cannot be moved by a wikiUser'
+        }, 'POST');
+
+        assert.equal(editPage.code, 'protectedpage');
+        assert.equal(movePage.code, 'cantmove-anon');
     });
 });
