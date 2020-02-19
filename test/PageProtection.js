@@ -2,11 +2,12 @@ const { action, assert, utils } = require('../index');
 
 describe('Test page protection levels and effectiveness', function () {
     // users
-    let admin, wikiUser;
+    let admin, wikiUser, eve, root;
     const anonymousUser = action.getAnon();
 
     const protectedPage = utils.title('Protected_');
     const semiProtectedPage = utils.title('SemiProtected_');
+    const testWatchlist = utils.title('TestWatchlist_');
 
     const testForExpiry = async (expiry) => {
         const adminEditToken = await admin.token();
@@ -30,9 +31,37 @@ describe('Test page protection levels and effectiveness', function () {
         return editPage.code;
     };
 
+    const protectWithWatchParam = async (watchedBefore, watchlistParam, title) => {
+        const watchArgs = {
+            title: title,
+            token: await eve.token('watch')
+        };
+        if (watchedBefore !== 'watched') {
+            watchArgs.unwatch = true;
+        }
+        await eve.action('watch', watchArgs, 'POST');
+        const token = await eve.token();
+        await eve.action('protect', {
+            title,
+            token,
+            protections: 'edit=autoconfirmed',
+            watchlist: watchlistParam
+        }, 'POST');
+        const res = await eve.action('query', {
+            list: 'watchlistraw',
+            wrfromtitle: title,
+            wrtotitle: title
+        });
+        return res.watchlistraw;
+    };
+
     before(async () => {
         admin = await action.mindy();
         wikiUser = await action.alice();
+        eve = action.getAnon();
+        await eve.account('Eve');
+        root = await action.root();
+        await root.addGroups(eve.username, [ 'sysop' ]);
 
         // Get edit token for admin
         const adminEditToken = await admin.token();
@@ -42,6 +71,11 @@ describe('Test page protection levels and effectiveness', function () {
 
         // Create SemiProtected page
         await admin.edit(semiProtectedPage, { text: 'Semi Protected Page' });
+
+        // Create TestWatchlist page
+        await eve.edit(testWatchlist, {
+            text: 'Protecting this page'
+        });
 
         // Add edit protections to only allow members of sysop group to edit Protected page
         const addSysopProtection = await admin.action('protect', { title: protectedPage, token: adminEditToken, protections: 'edit=sysop' }, 'POST');
@@ -146,5 +180,34 @@ describe('Test page protection levels and effectiveness', function () {
 
         assert.equal(editPage.code, 'protectedpage');
         assert.equal(movePage.code, 'cantmove-anon');
+    });
+
+    it('should confirm that a user has created and edited pages on users watchlist by default', async () => {
+        const list = await eve.action('query', {
+            list: 'watchlistraw',
+            wrfromtitle: testWatchlist,
+            wrtotitle: testWatchlist
+        });
+        assert.sameTitle(list.watchlistraw[0].title, testWatchlist);
+    });
+
+    it('should test that a user has created and edited pages on users watchlist when the watchlist parameter is set to preferences', async () => {
+        const list = await protectWithWatchParam('watched', 'preferences', testWatchlist);
+        assert.sameTitle(list[0].title, testWatchlist);
+    });
+
+    it('should test that the nochange parameter  does not change the pages on the watchlist', async () => {
+        const list = await protectWithWatchParam('watched', 'nochange', testWatchlist);
+        assert.sameTitle(list[0].title, testWatchlist);
+    });
+
+    it('should remove a page from the users watchlist and check that an empty array is returned if the page is the only page on the users watchlist', async () => {
+        const list = await protectWithWatchParam('watched', 'unwatch', testWatchlist);
+        assert.isEmpty(list);
+    });
+
+    it('should add a page to the users watchlist', async () => {
+        const list = await protectWithWatchParam('unwatched', 'watch', semiProtectedPage);
+        assert.sameTitle(list[0].title, semiProtectedPage);
     });
 });
