@@ -1,3 +1,5 @@
+'use strict';
+
 const { action, assert, utils } = require('../index');
 
 describe('The usercontribs list query', function testUserContribsListQuery() {

@@ -1,3 +1,5 @@
+'use strict';
+
 const { action, assert, utils } = require('../index');
 
 describe('Prefix Search', function () {
@@ -20,7 +22,7 @@ describe('Prefix Search', function () {
 
     it('should search for pages with the `${prefix}` prefix', async () => {
         const result = await alice.list('prefixsearch', { pssearch: `${prefix}`, pslimit: 100 });
-        const pageTitles = result.map((p)=>utils.dbkey(p.title));
+        const pageTitles = result.map((p) => utils.dbkey(p.title));
         assert.sameMembers(pageTitles, [firstPage, secondPage, thirdPage]);
     });
 });

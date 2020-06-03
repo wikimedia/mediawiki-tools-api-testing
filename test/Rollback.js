@@ -1,3 +1,5 @@
+'use strict';
+
 const { action, assert, utils } = require('../index');
 
 describe('The rollback action', function testEditRollback() {

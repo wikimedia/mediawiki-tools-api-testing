@@ -1,3 +1,5 @@
+'use strict';
+
 const { action, assert, REST, utils } = require('../../index');
 
 describe('Page History', () => {

@@ -1,3 +1,5 @@
+'use strict';
+
 const { action, assert, utils } = require('../index');
 
 describe('The delete/undelete action', function testDeleteAction() {

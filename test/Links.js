@@ -1,7 +1,9 @@
+'use strict';
+
 const { action, assert, utils } = require('../index');
 
 describe('Links', function testLinks() {
-    const titles = (list) => list.map((p)=>utils.dbkey(p.title));
+    const titles = (list) => list.map((p) => utils.dbkey(p.title));
 
     const pageX = utils.title('LinkTest_X_');
     const pageY = utils.title('LinkTest_Y_');
@@ -54,7 +56,7 @@ describe('Links', function testLinks() {
     describe('to external pages', () => {
         it('can be listed', async () => {
             const result = await alice.prop('extlinks', pageX);
-            const links = result[pageX].extlinks.map((p)=>p['*']);
+            const links = result[pageX].extlinks.map((p) => p['*']);
 
             assert.sameMembers(links, [urlY]);
         });

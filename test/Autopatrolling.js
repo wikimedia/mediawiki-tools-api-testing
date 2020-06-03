@@ -1,3 +1,5 @@
+'use strict';
+
 const { assert, action, utils } = require('../index');
 
 describe('Testing default autopatrolling rights', function () {

@@ -1,3 +1,5 @@
+'use strict';
+
 const { action, assert } = require('../index');
 
 describe("Changing a user's preferences", function () {

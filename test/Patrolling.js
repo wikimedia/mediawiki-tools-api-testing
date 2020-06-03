@@ -1,3 +1,5 @@
+'use strict';
+
 const { action, assert, utils } = require('../index');
 
 describe('The patrol action', function testEditPatrolling() {
@@ -21,7 +23,7 @@ describe('The patrol action', function testEditPatrolling() {
                 revid: edit.newrevid,
                 token: await alice.token('patrol')
             },
-            'POST',
+            'POST'
         );
         assert.equal(error.code, 'permissiondenied');
 
@@ -29,7 +31,7 @@ describe('The patrol action', function testEditPatrolling() {
             {
                 rctitle: pageTitle,
                 rcprop: 'ids|flags|patrolled'
-            },
+            }
         );
 
         assert.equal(rc.type, 'new');
@@ -46,7 +48,7 @@ describe('The patrol action', function testEditPatrolling() {
                 revid: edit.newrevid,
                 token: await mindy.token('patrol')
             },
-            'POST',
+            'POST'
         );
         assert.equal(result.patrol.rcid, rc.rcid);
 
@@ -54,7 +56,7 @@ describe('The patrol action', function testEditPatrolling() {
             {
                 rctitle: pageTitle,
                 rcprop: 'ids|flags|patrolled'
-            },
+            }
         ));
 
         assert.equal(rc.type, 'new');
@@ -69,7 +71,7 @@ describe('The patrol action', function testEditPatrolling() {
                 list: 'recentchanges',
                 rctitle: pageTitle,
                 rcprop: 'ids|flags|patrolled'
-            },
+            }
         );
 
         assert.equal(error.code, 'permissiondenied');

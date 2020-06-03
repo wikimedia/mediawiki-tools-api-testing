@@ -1,7 +1,9 @@
+'use strict';
+
 const { action, assert, REST, utils } = require('../../index');
 
 describe('Search', () => {
-    const client = new REST('rest.php/coredev/v0');
+    const client = new REST('rest.php/v1');
     const page = utils.title('Search');
     const searchTerm = `Content_${utils.uniq()}`;
     let alice;

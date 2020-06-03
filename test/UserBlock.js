@@ -1,3 +1,5 @@
+'use strict';
+
 const { action, assert, utils } = require('../index');
 
 describe('The block/unblock action', function testBlockingAUser() {
@@ -35,7 +37,7 @@ describe('The block/unblock action', function testBlockingAUser() {
                 summary: 'second',
                 token: await eve.token('csrf')
             },
-            'POST',
+            'POST'
         );
         assert.equal(error.code, 'blocked');
     });

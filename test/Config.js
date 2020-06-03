@@ -1,6 +1,9 @@
+'use strict';
+
 const { assert, utils } = require('../index');
 const fs = require('fs');
 const os = require('os');
+// eslint-disable-next-line node/no-unsupported-features/node-builtins
 const fsp = fs.promises;
 
 const testRootDir = `${os.tmpdir()}/${utils.uniq()}`;
