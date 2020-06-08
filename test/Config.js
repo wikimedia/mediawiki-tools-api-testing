@@ -41,9 +41,10 @@ const deleteTestConfigs = async () => {
     await fsp.rmdir(testRootDir);
 };
 
+const getConfig = require('../lib/config');
+
 describe('Configuration', () => {
     let envVar;
-    const getConfig = require('../lib/config');
 
     before(async () => {
         // Save the env var for other tests
