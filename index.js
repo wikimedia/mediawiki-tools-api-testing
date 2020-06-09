@@ -5,5 +5,6 @@ module.exports = {
     utils: require('./lib/utils'),
     REST: require('./lib/REST'),
     assert: require('./lib/assert').assert,
-    wiki: require('./lib/wiki')
+    wiki: require('./lib/wiki'),
+    clientFactory: require('./lib/clientFactory')
 };
