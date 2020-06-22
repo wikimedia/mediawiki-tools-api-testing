@@ -2,3 +2,6 @@
 * Removed tests for MediaWiki core action API and REST API.
 * Added clientFactory for constructing different clients that share a cookie jar.
 * Updated eslint rules
+
+## 1.2.0 / 2020-06-22
+* Add utility function in action API for creating change tags.
