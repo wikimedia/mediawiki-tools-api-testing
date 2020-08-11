@@ -8,9 +8,14 @@ describe('Action Api', () => {
 
         // If running this locally, the tag will already exist after the test has run once.
         it('Should create a new tag and return existing', async () => {
-            const tagName = 'api-test-new';
-            const tag = await action.makeTag(tagName);
+            const tagName = 'api-test';
+            const tagDisplay = 'TestTagDisplay';
+            const tag = await action.makeTag(tagName, `''${tagDisplay}''`);
             assert.deepEqual(tag, tagName);
+
+            const root = await action.root();
+            const tagList = await root.list('tags', { tglimit: 50, tgprop: 'displayname' });
+            assert.deepInclude(tagList, { name: tagName, displayname: `<i>${tagDisplay}</i>` });
 
             // If tag has already been created, should still return because it has been cached
             const tag2 = await action.makeTag(tagName);
