@@ -7,7 +7,7 @@
 		"array-bracket-spacing": "off",
 		"camelcase": [ "error", { "properties": "never" } ],
 		"computed-property-spacing": [ "error", "never" ],
-		"indent": [ "error", 4, {
+		"indent": [ "error", "tab", {
 			"SwitchCase": 1,
 			"MemberExpression": "off"
 		} ],
