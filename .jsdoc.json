@@ -1,0 +1,40 @@
+{
+	"opts": {
+		"encoding": "utf8",
+		"destination": "docs",
+		"package": "package.json",
+		"readme": "README.md",
+		"recurse": true,
+		"private": true,
+		"template": "node_modules/jsdoc-wmf-theme",
+		"class-hierarchy": {
+			"showList": true
+		}
+	},
+	"plugins": [
+		"plugins/markdown",
+		"plugins/summarize",
+		"node_modules/jsdoc-class-hierarchy"
+	],
+	"source": {
+		"include": [ "lib" ]
+	},
+	"templates": {
+		"cleverLinks": true,
+		"default": {
+			"useLongnameInNav": true
+		},
+		"wmf": {
+			"maintitle": "MediaWiki API testing",
+			"repository": "https://gerrit.wikimedia.org/g/mediawiki/tools/api-testing",
+			"hideSections": ["Events"],
+			"linkMap": {
+				"Array": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+				"ArrayBuffer": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
+				"Error": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+				"Object": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+				"Promise": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise"
+			}
+		}
+	}
+}

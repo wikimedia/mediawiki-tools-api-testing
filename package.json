@@ -5,7 +5,8 @@
 	"main": "index.js",
 	"scripts": {
 		"test": "npm run lint && mocha",
-		"lint": "eslint --cache ."
+		"lint": "eslint --cache .",
+		"doc": "jsdoc -c .jsdoc.json"
 	},
 	"repository": {
 		"type": "git",
@@ -22,6 +23,9 @@
 	},
 	"devDependencies": {
 		"eslint-config-wikimedia": "0.18.0",
+		"jsdoc": "3.6.7",
+		"jsdoc-class-hierarchy": "1.1.2",
+		"jsdoc-wmf-theme": "0.0.3",
 		"mocha": "7.2.0"
 	}
 }
