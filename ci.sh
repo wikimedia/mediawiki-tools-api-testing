@@ -5,7 +5,11 @@ set -eu -o pipefail
 TEST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 cd "$TEST_DIR"
 
-export API_TESTING_CONFIG_FILE=quibble.json
+if [ -z "${QUIBBLE_APACHE-}" ]; then
+  export API_TESTING_CONFIG_FILE=quibble.json
+else
+  export API_TESTING_CONFIG_FILE=quibble.apache.json
+fi
 
 npm install --no-package-lock
 npm test
