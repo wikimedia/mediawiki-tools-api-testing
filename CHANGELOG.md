@@ -1,3 +1,9 @@
+## 1.6.0
+* Make failures of actionError assertions more helpful
+* Use root to create other users
+* Log errors when creating an account
+* Add a new function that returns a blocked user
+
 ## 1.5.0
 * Run mocha tests in parallel
 * Attempt to re-run createAccount when exceptions occur (https://phabricator.wikimedia.org/T199393)
