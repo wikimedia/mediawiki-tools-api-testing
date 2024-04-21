@@ -3,15 +3,15 @@
 const { assert, utils } = require('../index');
 const fs = require('fs');
 const os = require('os');
-// eslint-disable-next-line node/no-unsupported-features/node-builtins
+// eslint-disable-next-line n/no-unsupported-features/node-builtins
 const fsp = fs.promises;
 
-const testRootDir = `${os.tmpdir()}/${utils.uniq()}`;
-const testConfigsDir = `${testRootDir}/configs`;
+const testRootDir = `${ os.tmpdir() }/${ utils.uniq() }`;
+const testConfigsDir = `${ testRootDir }/configs`;
 const testConfigFiles = [
-	[`${testConfigsDir}/quibble.json`, `{ "file": "${testConfigsDir}/quibble.json" }`],
-	[`${testConfigsDir}/example.json`, `{ "file": "${testConfigsDir}/example.json" }`],
-	[`${testRootDir}/.api-testing.config.json`, `{ "file": "${testRootDir}/.api-testing.config.json" }`]
+	[`${ testConfigsDir }/quibble.json`, `{ "file": "${ testConfigsDir }/quibble.json" }`],
+	[`${ testConfigsDir }/example.json`, `{ "file": "${ testConfigsDir }/example.json" }`],
+	[`${ testRootDir }/.api-testing.config.json`, `{ "file": "${ testRootDir }/.api-testing.config.json" }`]
 ];
 
 // Setup our test configs in the temp directory
@@ -28,13 +28,13 @@ const createTestConfigs = async () => {
 const deleteTestConfigs = async () => {
 	// NOTE: rmdir does not support recursion in node 11 and earlier.
 	const filesInConfigDir = await fsp.readdir(testConfigsDir, { withFileTypes: true });
-	await Promise.all(filesInConfigDir.map((dirent) => fsp.unlink(`${testConfigsDir}/${dirent.name}`)));
+	await Promise.all(filesInConfigDir.map((dirent) => fsp.unlink(`${ testConfigsDir }/${ dirent.name }`)));
 
 	const filesInRootDir = await fsp.readdir(testRootDir, { withFileTypes: true });
 	await Promise.all(filesInRootDir.map(
 		(dirent) => dirent.isDirectory() ?
-			fsp.rmdir(`${testRootDir}/${dirent.name}`) :
-			fsp.unlink(`${testRootDir}/${dirent.name}`)
+			fsp.rmdir(`${ testRootDir }/${ dirent.name }`) :
+			fsp.unlink(`${ testRootDir }/${ dirent.name }`)
 	));
 
 	// await fsp.rmdir(testConfigsDir);
@@ -61,15 +61,15 @@ describe('Configuration', () => {
 		}
 	});
 
-	describe(`Using ${testRootDir} as the configuration root folder`, () => {
+	describe(`Using ${ testRootDir } as the configuration root folder`, () => {
 		it('Use .api-testing.config.json file if API_TESTING_CONFIG_FILE does not exist', () => {
 			delete process.env.API_TESTING_CONFIG_FILE;
-			assert.deepEqual(getConfig(testRootDir), { file: `${testRootDir}/.api-testing.config.json` });
+			assert.deepEqual(getConfig(testRootDir), { file: `${ testRootDir }/.api-testing.config.json` });
 		});
 
 		it('Select full path config set in API_TESTING_CONFIG_FILE env variable over local config', () => {
-			process.env.API_TESTING_CONFIG_FILE = `${testConfigsDir}/quibble.json`;
-			assert.deepEqual(getConfig(testRootDir), { file: `${testConfigsDir}/quibble.json` });
+			process.env.API_TESTING_CONFIG_FILE = `${ testConfigsDir }/quibble.json`;
+			assert.deepEqual(getConfig(testRootDir), { file: `${ testConfigsDir }/quibble.json` });
 			delete process.env.API_TESTING_CONFIG_FILE;
 		});
 
@@ -82,7 +82,7 @@ describe('Configuration', () => {
 		describe('Renaming required root folder config ".api-testing.config.json"', () => {
 			it('Throws exception if ".api-testing.config.json" doesnt exist and API_TESTING_CONFIG_FILE is not set', () => {
 				delete process.env.API_TESTING_CONFIG_FILE;
-				fs.rename(`${testRootDir}/.api-testing.config.json`, `${testRootDir}/wrong.json`, (err) => {
+				fs.rename(`${ testRootDir }/.api-testing.config.json`, `${ testRootDir }/wrong.json`, (err) => {
 					assert.throws(() => getConfig(testRootDir), Error, /Missing local config!/);
 				});
 			});

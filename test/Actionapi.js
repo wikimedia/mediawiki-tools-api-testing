@@ -15,11 +15,11 @@ describe('Action Api', () => {
 		it('Should create a new tag and return existing', async () => {
 			const tagName = 'api-test';
 			const tagDisplay = 'TestTagDisplay';
-			const tag = await action.makeTag(tagName, `''${tagDisplay}''`);
+			const tag = await action.makeTag(tagName, `''${ tagDisplay }''`);
 			assert.deepEqual(tag, tagName);
 
 			const tagList = await alice.list('tags', { tglimit: 50, tgprop: 'displayname' });
-			assert.deepInclude(tagList, { name: tagName, displayname: `<i>${tagDisplay}</i>` });
+			assert.deepInclude(tagList, { name: tagName, displayname: `<i>${ tagDisplay }</i>` });
 
 			// If tag has already been created, should still return because it has been cached
 			const tag2 = await action.makeTag(tagName);
