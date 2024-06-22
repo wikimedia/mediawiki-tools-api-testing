@@ -5,9 +5,9 @@
 	"homepage": "https://gerrit.wikimedia.org/g/mediawiki/tools/api-testing",
 	"main": "index.js",
 	"scripts": {
-		"test": "npm run lint && mocha --parallel",
+		"doc": "jsdoc -c jsdoc.json",
 		"lint": "eslint --cache .",
-		"doc": "jsdoc -c jsdoc.json"
+		"test": "npm run lint && mocha --parallel"
 	},
 	"repository": {
 		"type": "git",
