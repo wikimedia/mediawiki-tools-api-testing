@@ -7,7 +7,7 @@
 	"scripts": {
 		"test": "npm run lint && mocha --parallel",
 		"lint": "eslint --cache .",
-		"doc": "jsdoc -c .jsdoc.json"
+		"doc": "jsdoc -c jsdoc.json"
 	},
 	"repository": {
 		"type": "git",
