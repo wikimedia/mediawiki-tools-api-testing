@@ -1,3 +1,6 @@
+## 1.7.0
+* Add `force` option to `makeTag` to handle race conditions better
+
 ## 1.6.0
 * Make failures of actionError assertions more helpful
 * Use root to create other users

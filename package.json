@@ -1,6 +1,6 @@
 {
 	"name": "api-testing",
-	"version": "1.6.0",
+	"version": "1.7.0",
 	"description": "",
 	"homepage": "https://gerrit.wikimedia.org/g/mediawiki/tools/api-testing",
 	"main": "index.js",
