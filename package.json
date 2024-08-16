@@ -16,17 +16,17 @@
 	"author": "",
 	"license": "ISC",
 	"engines": {
-		"node": ">= 10.0.0"
+		"node": ">= 14.18.0"
 	},
 	"dependencies": {
-		"chai": "^4.2.0",
-		"supertest": "^5.0.0-0"
+		"chai": "4.5.0",
+		"supertest": "7.1.0"
 	},
 	"devDependencies": {
-		"eslint-config-wikimedia": "0.28.2",
-		"jsdoc": "3.6.7",
+		"eslint-config-wikimedia": "0.29.1",
+		"jsdoc": "4.0.4",
 		"jsdoc-class-hierarchy": "1.1.2",
-		"jsdoc-wmf-theme": "0.0.8",
-		"mocha": "7.2.0"
+		"jsdoc-wmf-theme": "0.0.13",
+		"mocha": "11.1.0"
 	}
 }

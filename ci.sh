@@ -11,5 +11,5 @@ else
   export API_TESTING_CONFIG_FILE=quibble.apache.json
 fi
 
-npm install --no-package-lock
+npm ci
 npm test
