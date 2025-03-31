@@ -1,3 +1,6 @@
+## 1.7.1
+* build: Update dependencies
+
 ## 1.7.0
 * Add `force` option to `makeTag` to handle race conditions better
 
