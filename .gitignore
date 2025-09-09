@@ -4,3 +4,5 @@ node_modules
 .vscode
 .eslintcache
 .api-testing.config.json
+.nyc_output/
+coverage/

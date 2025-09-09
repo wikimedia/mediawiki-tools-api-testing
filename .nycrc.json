@@ -1,0 +1,24 @@
+{
+	"include": [
+		"lib/"
+	],
+
+	"all": true,
+
+	"report-dir": "coverage/",
+
+	"reporter": [
+		"lcov",
+		"clover",
+		"text-summary"
+	],
+
+	"cache": true,
+
+	"per-file": false,
+	"statements": 70.0,
+	"branches": 50.0,
+	"functions": 50.0,
+	"lines": 70.0,
+	"check-coverage": true
+}
