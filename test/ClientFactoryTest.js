@@ -1,5 +1,8 @@
 'use strict';
 
+// install dummy wiki before initializing other modules
+require('./fake.js').install();
+
 const { assert, action, clientFactory } = require('../index');
 
 describe('Client Factory', () => {

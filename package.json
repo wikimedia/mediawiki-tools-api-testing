@@ -24,6 +24,7 @@
 	},
 	"devDependencies": {
 		"eslint-config-wikimedia": "0.29.1",
+		"express": "5.1.0",
 		"jsdoc": "4.0.4",
 		"jsdoc-class-hierarchy": "1.1.2",
 		"jsdoc-wmf-theme": "1.1.0",

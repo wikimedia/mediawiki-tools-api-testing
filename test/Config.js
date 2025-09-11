@@ -1,17 +1,23 @@
 'use strict';
 
-const { assert, utils } = require('../index');
+/* eslint security/detect-non-literal-fs-filename: 0 */
+
 const fs = require('fs');
 const os = require('os');
-// eslint-disable-next-line n/no-unsupported-features/node-builtins
+
 const fsp = fs.promises;
+
+// install dummy config before initializing other modules
+require('../lib/config').dummy();
+
+const { assert, utils } = require('../index');
 
 const testRootDir = `${ os.tmpdir() }/${ utils.uniq() }`;
 const testConfigsDir = `${ testRootDir }/configs`;
 const testConfigFiles = [
-	[`${ testConfigsDir }/quibble.json`, `{ "file": "${ testConfigsDir }/quibble.json" }`],
-	[`${ testConfigsDir }/example.json`, `{ "file": "${ testConfigsDir }/example.json" }`],
-	[`${ testRootDir }/.api-testing.config.json`, `{ "file": "${ testRootDir }/.api-testing.config.json" }`]
+	[`${ testConfigsDir }/quibble.json`, `{ "base_uri": "file:${ testConfigsDir }/quibble.json" }`],
+	[`${ testConfigsDir }/example.json`, `{ "base_uri": "file:${ testConfigsDir }/example.json" }`],
+	[`${ testRootDir }/.api-testing.config.json`, `{ "base_uri": "file:${ testRootDir }/.api-testing.config.json" }`]
 ];
 
 // Setup our test configs in the temp directory
@@ -61,40 +67,81 @@ describe('Configuration', () => {
 		}
 	});
 
-	describe(`Using ${ testRootDir } as the configuration root folder`, () => {
+	describe(`using ${ testRootDir } as the configuration root folder`, () => {
 		it('Use .api-testing.config.json file if API_TESTING_CONFIG_FILE does not exist', () => {
+			getConfig.reset();
+			getConfig.setBaseDir(testRootDir);
 			delete process.env.API_TESTING_CONFIG_FILE;
-			assert.deepEqual(getConfig(testRootDir), { file: `${ testRootDir }/.api-testing.config.json` });
+
+			assert.deepEqual(getConfig().base_uri, `file:${ testRootDir }/.api-testing.config.json`);
 		});
 
 		it('Select full path config set in API_TESTING_CONFIG_FILE env variable over local config', () => {
+			getConfig.reset();
+			getConfig.setBaseDir(testRootDir);
 			process.env.API_TESTING_CONFIG_FILE = `${ testConfigsDir }/quibble.json`;
-			assert.deepEqual(getConfig(testRootDir), { file: `${ testConfigsDir }/quibble.json` });
+
+			assert.deepEqual(getConfig().base_uri, `file:${ testConfigsDir }/quibble.json`);
 			delete process.env.API_TESTING_CONFIG_FILE;
 		});
 
 		it('Throw exception if config file set in API_TESTING_CONFIG_FILE does not exist', () => {
+			getConfig.reset();
+			getConfig.setBaseDir(testRootDir);
 			process.env.API_TESTING_CONFIG_FILE = 'idonotexist.json';
-			assert.throws(() => getConfig(testRootDir), Error, /API_TESTING_CONFIG_FILE was set but neither/);
+
+			assert.throws(() => getConfig(), Error, /API_TESTING_CONFIG_FILE was set but neither/);
 			delete process.env.API_TESTING_CONFIG_FILE;
 		});
 
-		describe('Renaming required root folder config ".api-testing.config.json"', () => {
-			it('Throws exception if ".api-testing.config.json" doesnt exist and API_TESTING_CONFIG_FILE is not set', () => {
-				delete process.env.API_TESTING_CONFIG_FILE;
-				fs.rename(`${ testRootDir }/.api-testing.config.json`, `${ testRootDir }/wrong.json`, (err) => {
-					assert.throws(() => getConfig(testRootDir), Error, /Missing local config!/);
-				});
-			});
+		it('Throws exception if ".api-testing.config.json" doesnt exist and API_TESTING_CONFIG_FILE is not set', () => {
+			getConfig.reset();
+			getConfig.setBaseDir(testRootDir + '_DOES_NOT_EXIST');
+			delete process.env.API_TESTING_CONFIG_FILE;
+
+			assert.throws(() => getConfig(), Error, /Missing local config/);
 		});
 	});
 
 	describe('Using REST_BASE_URL for configuration', () => {
 		it('should return a json when REST_BASE_URL is set', () => {
+			getConfig.reset();
 			process.env.REST_BASE_URL = 'http://localhost:8081/';
 
 			assert.deepEqual(getConfig(), { base_uri: process.env.REST_BASE_URL });
 			delete process.env.REST_BASE_URL;
+		});
+	});
+
+	describe('Dynamic modification', () => {
+		it('should apply after calling set()', () => {
+			getConfig.dummy();
+			const config = getConfig();
+
+			getConfig.set('base_uri', 'just a test');
+
+			// The const object should provide dynamic access to the underlying configuration
+			assert.deepEqual(config.base_uri, 'just a test');
+		});
+
+		it('should apply after calling replace()', () => {
+			getConfig.dummy();
+			const config = getConfig();
+
+			getConfig.replace({ base_uri: 'another test' });
+
+			// The const object should provide dynamic access to the underlying configuration
+			assert.deepEqual(config.base_uri, 'another test');
+		});
+
+		it('should apply after calling load()', () => {
+			getConfig.dummy();
+			const config = getConfig();
+
+			getConfig.load(`${ testConfigsDir }/quibble.json`);
+
+			// The const object should provide dynamic access to the underlying configuration
+			assert.deepEqual(config.base_uri, `file:${ testConfigsDir }/quibble.json`);
 		});
 	});
 });
