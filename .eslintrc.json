@@ -5,14 +5,39 @@
 	],
 	"rules": {
 		"array-bracket-spacing": "off",
-		"camelcase": [ "error", { "properties": "never" } ],
-		"computed-property-spacing": [ "error", "never" ],
-		"indent": [ "error", "tab", {
-			"SwitchCase": 1
-		} ],
+		"camelcase": [
+			"error",
+			{
+				"properties": "never"
+			}
+		],
+		"computed-property-spacing": [
+			"error",
+			"never"
+		],
+		"indent": [
+			"error",
+			"tab",
+			{
+				"SwitchCase": 1
+			}
+		],
 		"no-underscore-dangle": "off",
-		"no-unused-vars": [ "error", { "args": "none" } ],
-		"no-use-before-define": [ "error", { "classes": false } ],
-		"space-in-parens": [ "error", "never" ]
+		"no-unused-vars": [
+			"error",
+			{
+				"args": "none"
+			}
+		],
+		"no-use-before-define": [
+			"error",
+			{
+				"classes": false
+			}
+		],
+		"space-in-parens": [
+			"error",
+			"never"
+		]
 	}
 }
