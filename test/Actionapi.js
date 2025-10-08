@@ -1,51 +1,58 @@
 'use strict';
 
-// install fake before initializing other modules
-const mock = require('./fake.js').install().newMock();
-
 const { assert, action } = require('../index');
 
-mock.action.fail = (req) => {
-	throw new Error('something went wrong');
-};
-
 const tagDisplay = 'TestTagDisplay';
-const tags = {};
 
-mock.query.list.tags = (req) => {
-	const list = Object.entries(tags).map(([key, value]) => ({ name: key, displayname: value }));
+function prepareMock() {
+	// install fake wiki
+	const mock = require('./fake.js').install().newMock();
 
-	return {
-		tags: list
+	mock.action.fail = (req) => {
+		throw new Error('something went wrong');
 	};
-};
 
-mock.action.managetags = (req) => {
-	const op = req.params.operation;
-	const name = req.params.tag;
+	const tags = {};
 
-	if (op === 'create') {
-		tags[name] = `<i>${ tagDisplay }</i>`;
-	} else if (op === 'delete') {
-		if (tags[name]) {
-			delete tags[name];
-		} else {
-			return {
-				error: {
-					code: 'tags-delete-not-found'
-				}
-			};
-		}
-	}
+	mock.query.list.tags = (req) => {
+		const list = Object.entries(tags)
+			.map(([key, value]) => ({ name: key, displayname: value }));
 
-	return {
-		managetags: {
-			tag: name
-		}
+		return {
+			tags: list
+		};
 	};
-};
+
+	mock.action.managetags = (req) => {
+		const op = req.params.operation;
+		const name = req.params.tag;
+
+		if (op === 'create') {
+			tags[name] = `<i>${ tagDisplay }</i>`;
+		} else if (op === 'delete') {
+			if (tags[name]) {
+				delete tags[name];
+			} else {
+				return {
+					error: {
+						code: 'tags-delete-not-found'
+					}
+				};
+			}
+		}
+
+		return {
+			managetags: {
+				tag: name
+			}
+		};
+	};
+}
 
 describe('The action api', () => {
+	before(async () => {
+		prepareMock();
+	});
 
 	describe('framework', () => {
 

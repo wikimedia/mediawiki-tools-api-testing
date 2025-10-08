@@ -1,11 +1,12 @@
 'use strict';
 
-// install dummy wiki before initializing other modules
-require('./fake.js').install();
-
 const { assert, action, clientFactory } = require('../index');
 
 describe('Client Factory', () => {
+	before(async () => {
+		// install fake wiki
+		require('./fake.js').install();
+	});
 
 	it('Should share supertest agent between REST and Action API Clients', async () => {
 		const actionAgent = await action.alice();

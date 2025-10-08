@@ -7,9 +7,6 @@ const os = require('os');
 
 const fsp = fs.promises;
 
-// install dummy config before initializing other modules
-require('../lib/config').dummy();
-
 const { assert, utils } = require('../index');
 
 const testRootDir = `${ os.tmpdir() }/${ utils.uniq() }`;
@@ -47,12 +44,15 @@ const deleteTestConfigs = async () => {
 	await fsp.rmdir(testRootDir);
 };
 
-const getConfig = require('../lib/config');
+const config = require('../lib/config');
 
 describe('Configuration', () => {
 	let envVar;
 
 	before(async () => {
+		// install dummy config
+		require('../lib/config').dummy();
+
 		// Save the env var for other tests
 		envVar = process.env.API_TESTING_CONFIG_FILE;
 		delete process.env.API_TESTING_CONFIG_FILE;
@@ -69,76 +69,70 @@ describe('Configuration', () => {
 
 	describe(`using ${ testRootDir } as the configuration root folder`, () => {
 		it('Use .api-testing.config.json file if API_TESTING_CONFIG_FILE does not exist', () => {
-			getConfig.reset();
-			getConfig.setBaseDir(testRootDir);
+			config.reset();
+			config.setBaseDir(testRootDir);
 			delete process.env.API_TESTING_CONFIG_FILE;
 
-			assert.deepEqual(getConfig().base_uri, `file:${ testRootDir }/.api-testing.config.json`);
+			assert.deepEqual(config.base_uri, `file:${ testRootDir }/.api-testing.config.json`);
 		});
 
 		it('Select full path config set in API_TESTING_CONFIG_FILE env variable over local config', () => {
-			getConfig.reset();
-			getConfig.setBaseDir(testRootDir);
+			config.reset();
+			config.setBaseDir(testRootDir);
 			process.env.API_TESTING_CONFIG_FILE = `${ testConfigsDir }/quibble.json`;
 
-			assert.deepEqual(getConfig().base_uri, `file:${ testConfigsDir }/quibble.json`);
+			assert.deepEqual(config.base_uri, `file:${ testConfigsDir }/quibble.json`);
 			delete process.env.API_TESTING_CONFIG_FILE;
 		});
 
 		it('Throw exception if config file set in API_TESTING_CONFIG_FILE does not exist', () => {
-			getConfig.reset();
-			getConfig.setBaseDir(testRootDir);
+			config.reset();
+			config.setBaseDir(testRootDir);
 			process.env.API_TESTING_CONFIG_FILE = 'idonotexist.json';
 
-			assert.throws(() => getConfig(), Error, /API_TESTING_CONFIG_FILE was set but neither/);
+			assert.throws(() => config.init(), Error, /API_TESTING_CONFIG_FILE was set but neither/);
 			delete process.env.API_TESTING_CONFIG_FILE;
 		});
 
 		it('Throws exception if ".api-testing.config.json" doesnt exist and API_TESTING_CONFIG_FILE is not set', () => {
-			getConfig.reset();
-			getConfig.setBaseDir(testRootDir + '_DOES_NOT_EXIST');
+			config.reset();
+			config.setBaseDir(testRootDir + '_DOES_NOT_EXIST');
 			delete process.env.API_TESTING_CONFIG_FILE;
 
-			assert.throws(() => getConfig(), Error, /Missing local config/);
+			assert.throws(() => config.init(), Error, /Missing local config/);
 		});
 	});
 
 	describe('Using REST_BASE_URL for configuration', () => {
 		it('should return a json when REST_BASE_URL is set', () => {
-			getConfig.reset();
+			config.reset();
 			process.env.REST_BASE_URL = 'http://localhost:8081/';
 
-			assert.deepEqual(getConfig(), { base_uri: process.env.REST_BASE_URL });
+			assert.deepEqual(config.init(), { base_uri: process.env.REST_BASE_URL });
 			delete process.env.REST_BASE_URL;
 		});
 	});
 
 	describe('Dynamic modification', () => {
 		it('should apply after calling set()', () => {
-			getConfig.dummy();
-			const config = getConfig();
-
-			getConfig.set('base_uri', 'just a test');
+			config.dummy();
+			config.set('base_uri', 'just a test');
 
 			// The const object should provide dynamic access to the underlying configuration
 			assert.deepEqual(config.base_uri, 'just a test');
 		});
 
 		it('should apply after calling replace()', () => {
-			getConfig.dummy();
-			const config = getConfig();
-
-			getConfig.replace({ base_uri: 'another test' });
+			config.dummy();
+			config.replace({ base_uri: 'another test' });
 
 			// The const object should provide dynamic access to the underlying configuration
 			assert.deepEqual(config.base_uri, 'another test');
 		});
 
 		it('should apply after calling load()', () => {
-			getConfig.dummy();
-			const config = getConfig();
-
-			getConfig.load(`${ testConfigsDir }/quibble.json`);
+			config.dummy();
+			config.load(`${ testConfigsDir }/quibble.json`);
 
 			// The const object should provide dynamic access to the underlying configuration
 			assert.deepEqual(config.base_uri, `file:${ testConfigsDir }/quibble.json`);
