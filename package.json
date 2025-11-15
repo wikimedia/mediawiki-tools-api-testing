@@ -23,9 +23,9 @@
 		"supertest": "7.1.0"
 	},
 	"devDependencies": {
-		"eslint-config-wikimedia": "0.31.0",
+		"eslint-config-wikimedia": "0.32.1",
 		"express": "5.1.0",
-		"jsdoc": "4.0.4",
+		"jsdoc": "4.0.5",
 		"jsdoc-class-hierarchy": "1.1.2",
 		"jsdoc-wmf-theme": "1.1.0",
 		"mocha": "11.1.0",
