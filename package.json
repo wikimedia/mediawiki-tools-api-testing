@@ -23,7 +23,7 @@
 		"supertest": "7.1.0"
 	},
 	"devDependencies": {
-		"eslint-config-wikimedia": "0.32.1",
+		"eslint-config-wikimedia": "0.32.2",
 		"express": "5.1.0",
 		"jsdoc": "4.0.5",
 		"jsdoc-class-hierarchy": "1.1.2",
