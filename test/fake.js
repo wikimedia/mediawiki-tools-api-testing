@@ -155,6 +155,31 @@ function createAccountAction(req) {
 }
 
 /**
+ * Mock handler for the "error" action,
+ * which returns the error in the request params.
+ *
+ * @param {Request} req
+ * @return {Object}
+ */
+function errorAction(req) {
+	return { success: 0, error: { code: req.params.code } };
+}
+
+/**
+ * Mock handler for the "errors" action,
+ * which returns the errors in the request params.
+ *
+ * @param {Request} req
+ * @return {Object}
+ */
+function errorsAction(req) {
+	return { success: 0, errors: [
+		{ code: req.params.code1 },
+		{ code: req.params.code2 }
+	] };
+}
+
+/**
  * Mock handler for the "Special:Runjobs" page.
  *
  * @param {Request} req
@@ -197,7 +222,9 @@ wikiApp.newMock = function () {
 			query: queryAction,
 			login: loginAction,
 			createaccount: createAccountAction,
-			edit: editAction
+			edit: editAction,
+			error: errorAction,
+			errors: errorsAction
 		},
 		path: {
 			test: testEndpoint

@@ -76,6 +76,40 @@ describe('The action api', () => {
 				}
 			}
 		});
+
+		it('should ignore allowed errors', async () => {
+			let res = await action.getAnon().actionWithErrors('error', {
+				code: 'ignored'
+			}, false, ['ignored']);
+			assert.equal(res.success, 0);
+
+			res = await action.getAnon().actionWithErrors('errors', {
+				code1: 'ignored',
+				code2: 'ignored2'
+			}, false, ['ignored', 'ignored2', 'ignored3']);
+			assert.equal(res.success, 0);
+		});
+
+		it('should throw non-allowed errors', async () => {
+			try {
+				await action.getAnon().actionWithErrors('error', {
+					code: 'unknown'
+				}, false, ['ignored']);
+				assert.throwsException('this request should have failed');
+			} catch (e) {
+				assert.include(e.message, 'Action "error" returned error code(s) "unknown"!');
+			}
+
+			try {
+				await action.getAnon().actionWithErrors('errors', {
+					code1: 'ignored',
+					code2: 'unknown'
+				}, false, ['ignored']);
+				assert.throwsException('this request should have failed');
+			} catch (e) {
+				assert.include(e.message, 'Action "errors" returned error code(s) "ignored, unknown"!');
+			}
+		});
 	});
 
 	describe('tag management helpers', () => {
