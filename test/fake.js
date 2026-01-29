@@ -119,6 +119,12 @@ function testEndpoint(req) {
 	return {
 		test: {
 			result: 'ok'
+		},
+		request: {
+			query: req.query,
+			url: req.url,
+			path: req.path,
+			headers: req.headers
 		}
 	};
 }
@@ -227,7 +233,7 @@ wikiApp.newMock = function () {
 			errors: errorsAction
 		},
 		path: {
-			test: testEndpoint
+			'/rest.php/test': testEndpoint
 		},
 		query: {
 			list: {},
@@ -295,18 +301,21 @@ function action(req, res) {
 }
 
 /**
- * Express handler for rest.php
+ * Express handler for plain paths
  *
  * @param {Request} req
  * @param {Response} res
  */
-function rest(req, res) {
-	const routeName = req.baseUrl;
+function path(req, res) {
+	const reqPath = req.path;
 	let data;
 
-	if (wikiApp._currentMock.path[routeName]) {
-		// FIXME: try this out!
-		const fn = wikiApp._currentMock.path[routeName];
+	for (const handlerPath in wikiApp._currentMock.path) {
+		if (!reqPath.startsWith(handlerPath)) {
+			continue;
+		}
+
+		const fn = wikiApp._currentMock.path[handlerPath];
 		try {
 			data = fn(req);
 		} catch (e) {
@@ -324,10 +333,12 @@ function rest(req, res) {
 		} else {
 			res.json(data);
 		}
-	} else {
-		res.status(500);
-		res.render('error', { error: `no route handler function for "${ routeName }"` });
+
+		return; // all done.
 	}
+
+	res.status(500);
+	res.json({ error: `no route handler function for "${ reqPath }"` });
 
 	res.end();
 }
@@ -374,11 +385,12 @@ function page(req, res) {
 }
 
 wikiApp.all('/api.php', action);
-wikiApp.all('/rest.php', rest);
 wikiApp.all('/index.php', page);
 
+wikiApp.all(/^\//, path); // catch-all, including /rest.php
+
 /**
- * Installs the fake wiki into the global configuration, so that the client libraries
+ * Installs the fake wiki into the global configuration so that the client libraries
  * use it instead of a connection to a real wiki.
  *
  * @return {Object} this
