@@ -1,3 +1,14 @@
+## 1.7.3
+* Handle errorformat=!bc errors
+* Export the config module in index.json
+* Fix edge cases in path  normalization
+
+## 1.7.2
+* actionapi: report original error when request fails
+* Add a fake wiki for testing
+* Make config a module object rather than a function
+* Update supertest to 7.2.2
+
 ## 1.7.1
 * build: Update dependencies
 
