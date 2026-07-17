@@ -7,5 +7,6 @@ module.exports = {
 	assert: require('./lib/assert').assert,
 	wiki: require('./lib/wiki'),
 	config: require('./lib/config'),
-	clientFactory: require('./lib/clientFactory')
+	clientFactory: require('./lib/clientFactory'),
+	openApiLinter: require('./lib/openApiLinter')
 };

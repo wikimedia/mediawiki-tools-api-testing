@@ -1,0 +1,12 @@
+extends:
+  - "@wikimedia/wikimedia-spectral-ruleset"
+
+rules:
+  # Not a severity downgrade: spectral:oas's built-in "duplicated-entry-in-enum"
+  # rule crashes the whole lint run (does not just report an issue) on any
+  # document containing a literal `null` value outside a "properties" key -
+  # its `given` JSONPath filter reads `@.enum` without first checking `@`
+  # is non-null. The real MediaWiki REST API OAD has such values (e.g.
+  # unset `example` fields serialize as `null`). Disabled until fixed
+  # upstream in @stoplight/spectral-rulesets. See T422920.
+  duplicated-entry-in-enum: off
