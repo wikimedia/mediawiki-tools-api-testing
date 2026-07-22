@@ -1,3 +1,6 @@
+## 1.8.0
+* Add openApiLinter module to lint the REST API's OpenAPI Description with Spectral
+
 ## 1.7.3
 * Handle errorformat=!bc errors
 * Export the config module in index.json
