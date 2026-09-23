@@ -8,5 +8,10 @@ module.exports = {
 	wiki: require('./lib/wiki'),
 	config: require('./lib/config'),
 	clientFactory: require('./lib/clientFactory'),
-	openApiLinter: require('./lib/openApiLinter')
+	// Loaded lazily: the linter reads its ruleset from disk at load time,
+	// which fails for consumers bundling this library for a browser,
+	// such as Cypress test setups (T438947).
+	get openApiLinter() {
+		return require('./lib/openApiLinter');
+	}
 };
