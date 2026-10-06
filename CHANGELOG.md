@@ -1,3 +1,10 @@
+## 1.8.1
+* Replace nyc with c8
+* Update mocha to 12.0.0-rc.6
+* Update js-yaml to 4.3.1
+* Load openApiLinter lazily
+* Update jsdoc-wmf-theme to 1.3.1
+
 ## 1.8.0
 * Add openApiLinter module to lint the REST API's OpenAPI Description with Spectral
 
