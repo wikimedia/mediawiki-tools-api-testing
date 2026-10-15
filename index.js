@@ -13,5 +13,9 @@ module.exports = {
 	// such as Cypress test setups (T438947).
 	get openApiLinter() {
 		return require('./lib/openApiLinter');
+	},
+	// Loaded lazily for the same reason: it pulls in Node-only dependencies.
+	get openApi() {
+		return require('./lib/openApi');
 	}
 };

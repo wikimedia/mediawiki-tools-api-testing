@@ -20,11 +20,13 @@
 		"node": ">= 14.18.0"
 	},
 	"dependencies": {
+		"@apidevtools/json-schema-ref-parser": "11.7.2",
 		"@stoplight/spectral-core": "1.23.1",
 		"@stoplight/spectral-formatters": "1.5.1",
 		"@stoplight/spectral-parsers": "1.0.5",
 		"@wikimedia/wikimedia-spectral-ruleset": "0.1.2",
 		"chai": "4.5.0",
+		"chai-openapi-response-validator": "0.14.2",
 		"js-yaml": "4.3.1",
 		"superagent": "10.3.0",
 		"supertest": "7.2.2"
