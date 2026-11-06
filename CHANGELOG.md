@@ -1,3 +1,6 @@
+## 1.9.0
+* Add openApi module with useModuleSpec() to validate responses against a REST module's OpenAPI spec
+
 ## 1.8.1
 * Replace nyc with c8
 * Update mocha to 12.0.0-rc.6
